@@ -1,0 +1,52 @@
+# flask
+# gunicorn
+sanic
+sanic-jinja2
+pipwin
+Twisted
+python-binance
+gunicorn
+# Bybit
+
+# To install python-binance:
+# pip install pipwin
+# pipwin install Twisted
+
+#Heroku
+#Git
+#Heroku CLI
+
+
+#webhook: https://jp-webhook.herokuapp.com/webhook
+
+
+
+#create 15m
+#create 3m
+#test
+
+# Flask Test:
+# http://localhost:5000/webhook
+
+# Flask with Redis for async coroutines?
+
+#APScheduler
+
+# Gunicorn - Check for memory leaks
+# https://sanic.readthedocs.io/en/latest/sanic/deploying.html
+
+# Sanic Test: http://127.0.0.1:8000/
+
+# gunicorn main:app --bind 0.0.0.0:1337 --worker-class sanic.worker.GunicornWorker
+# web: gunicorn main:app
+
+# gunicorn main:app --bind 0.0.0.0:1337 --worker-class sanic.worker.GunicornWorker
+
+# git add .
+# git commit -m "status"
+# git push origin main
+
+# heroku logs --tail
+
+
+# http://127.0.0.1:8000/webhook
