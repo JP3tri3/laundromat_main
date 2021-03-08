@@ -1,5 +1,6 @@
 import bybit
 import config
+import comms
 import json
 import time
 import datetime
@@ -301,6 +302,8 @@ def createOrder(sideInput, symbolInput, order_type):
     print("Entry Price: " + str(entry_price))
     print("Exit Price: " + str(stop_loss))
     print("Percent Level: " + str(percentLevel))
+    comms.logClosingDetails(entry_price, level, percentLevel, stop_loss)
+
 
 # Close & Stoploss
 

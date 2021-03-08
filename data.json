@@ -1,7 +1,7 @@
 {
     "passphrase": "abc123",
     "vwap": {
-        "1min": 0,
+        "1min": 6,
         "3min": 0,
         "5min": 0
     },

@@ -1,3 +1,4 @@
+import bybit_info
 import json
 import time
 import asyncio
@@ -82,3 +83,14 @@ def viewData(name, key):
 
 
 # data = asyncio.Queue()
+a = 0.2
+
+
+def logClosingDetails():
+    f = open("logs.txt", "a")
+    f.write("a: " + str(a) + "\n")
+    f.write("test" + "\n")
+    f.close()
+
+
+logClosingDetails()
