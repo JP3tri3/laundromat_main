@@ -24,9 +24,10 @@ def viewData(name, key):
     return data[name][key]
 
 
-def logClosingDetails(entryPrice, exitPrice, percentGain, stopLoss):
+def logClosingDetails(entryPrice, exitPrice, percentGain, stopLoss, side):
     f = open("logs.txt", "a")
     f.write(str(datetime.datetime.now()) + "\n")
+    f.write("Side: " + str(side) + "\n")
     f.write("Entry Price: " + str(entryPrice) + "\n")
     f.write("Exit Price: " + str(exitPrice) + "\n")
     f.write("Percent Gain: " + str(percentGain) + "\n")

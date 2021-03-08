@@ -36,6 +36,19 @@ def updateData(name, key, value):
     print(json_object)
 
 
+def updateData(key, value):
+    access_file = open("data.json", "r")
+    json_object = json.load(access_file)
+    access_file.close()
+
+    json_object[key] = value
+
+    access_file = open("data.json", "w")
+    json.dump(json_object, access_file, indent=4)
+    access_file.close()
+    print(json_object)
+
+
 def viewData(name, key):
     output = ''
     with open('data.json') as f:
@@ -44,6 +57,17 @@ def viewData(name, key):
     return data[name][key]
 
 
+while True:
+    updateData('passphrase', '1')
+    time.sleep(3)
+    updateData('passphrase', '2')
+    time.sleep(3)
+    updateData('passphrase', '3')
+    time.sleep(3)
+    updateData('passphrase', '4')
+    time.sleep(3)
+    updateData('passphrase', '5')
+    time.sleep(3)
 # updateData('vwap', '1min', 50)
 
 # print(viewData('vwap', '1min'))
@@ -83,14 +107,3 @@ def viewData(name, key):
 
 
 # data = asyncio.Queue()
-a = 0.2
-
-
-def logClosingDetails():
-    f = open("logs.txt", "a")
-    f.write("a: " + str(a) + "\n")
-    f.write("test" + "\n")
-    f.close()
-
-
-logClosingDetails()

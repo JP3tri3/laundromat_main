@@ -302,8 +302,8 @@ def createOrder(sideInput, symbolInput, order_type):
     print("Entry Price: " + str(entry_price))
     print("Exit Price: " + str(stop_loss))
     print("Percent Level: " + str(percentLevel))
-    comms.logClosingDetails(entry_price, level, percentLevel, stop_loss)
-
+    comms.logClosingDetails(entry_price, level, percentLevel, stop_loss, side)
+    comms.updateData("vwap", "1min", 0)
 
 # Close & Stoploss
 

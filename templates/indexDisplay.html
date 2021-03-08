@@ -1,0 +1,65 @@
+<html>
+
+<head>
+    <title>TEST</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Test Data Display</h1>
+
+    <table style="width:100%">
+        <tr>
+            <th>TEST</th>
+            <th># of Trades</th>
+            <th>Total Percent</th>
+        </tr>
+        <tr>
+            <td>
+                <div id="mainTest_table_name"></div>
+            </td>
+            <td>
+                <div id="mainTest_number_Of_trades"></div>
+            </td>
+            <td>
+                <div id="mainTest_percentage"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>--</td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
+        <tr>
+            <td>--</td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
+        <tr>
+            <td>--</td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
+        <tr>
+            <td>--</td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
+        <tr>
+            <td>--</td>
+            <td>--</td>
+            <td>--</td>
+        </tr>
+    </table>
+    <script>
+        fetch("../data.json")
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector("#mainTest_table_name").innerText = data.mainTest_table_name
+                document.querySelector("#mainTest_number_Of_trades").innerText = data.mainTest_number_Of_trades
+                document.querySelector("#mainTest_percentage").innerText = data.mainTest_percentage
+            })
+    </script>
+</body>
+
+</html>
