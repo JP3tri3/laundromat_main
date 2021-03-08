@@ -1,4 +1,3 @@
-import threading
 import config
 import bybit_info
 from time import time, sleep
@@ -7,6 +6,7 @@ import time
 import datetime
 import bybit
 import sys
+import asyncio
 
 myTime = int(time.time() * 1000)
 
@@ -16,14 +16,14 @@ client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
 flag = True
 
 
-def shutdown():
+async def shutdown():
     print("")
     print("Shutting down...")
     sys.exit("Program Terminated")
     print("")
 
 
-def inputOptions():
+async def inputOptions():
     print("")
     print("TESTNET - Input Options:")
     print("")
@@ -51,12 +51,12 @@ def inputOptions():
     print("Exit: 'exit'")
 
 
-def main():
+async def main():
     global flag
 
     print("")
 
-    inputOptions()
+    await inputOptions()
 
     while(flag == True):
 
@@ -65,7 +65,7 @@ def main():
         bybit_info.timeStamp()
 
         if(taskInput == "exit"):
-            shutdown()
+            await shutdown()
 
         elif(taskInput == "btc price"):
             bybit_info.btcPriceInfo()
@@ -114,7 +114,7 @@ def main():
 
         elif(taskInput == "position"):
             print("Position: ")
-            bybit_info.myPosition()
+            bybit_info.activePositionCheck()
 
         elif(taskInput == "atr"):
             bybit_info.inputAtr()
@@ -143,7 +143,7 @@ def main():
 
         else:
             print("Invalid Input, try again...")
-            inputOptions()
+            await inputOptions()
 
 
 # def priceTest():
@@ -155,4 +155,6 @@ def main():
 #         print(btcInfo)
 #         sleep(1)
 
-main()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.close()

@@ -155,13 +155,20 @@ def activePositionTest(symbol):
 
 
 def activePositionCheck():
-    position = client.Positions.Positions_myPosition(symbol="BTCUSD").result()
-    positionResult = position[0]['result']
-    positionValue = positionResult['position_value']
-    if(positionValue != "0"):
-        return 1
-    else:
-        return 0
+    try:
+        position = client.Positions.Positions_myPosition(
+            symbol="BTCUSD").result()
+        positionResult = position[0]['result']
+        positionValue = positionResult['position_value']
+        if(positionValue != "0"):
+            return 1
+        else:
+            return 0
+    except Exception as e:
+        print("Active Position Check Exception Occured...")
+        print("Trying again...")
+        time.sleep(2)
+        activePositionCheck()
 
 
 def getPositionSize():

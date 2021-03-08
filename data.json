@@ -1,0 +1,12 @@
+{
+    "passphrase": "abc123",
+    "vwap": {
+        "1min": 0,
+        "3min": 0,
+        "5min": 0
+    },
+    "momentum": {
+        "1min": true,
+        "3min": false
+    }
+}

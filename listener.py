@@ -25,7 +25,6 @@ async def index(request):
 @app.route('/webhook', methods=['POST'])
 async def webhook(request):
 
-    print("test")
     data = request.json
 
     inputName = data['name']
@@ -39,7 +38,6 @@ async def webhook(request):
             "message": "Invalid Passphrase"
         })
     else:
-        print("JSON Updated")
         comms.updateData(inputName, inputKey, inputValue)
         return json({
             "code": "success",
