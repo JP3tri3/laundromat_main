@@ -405,7 +405,6 @@ def calculateStopLoss():
     global percentLevel
     processTrigger = percentLevel
     percentGained = calculatePercentGained()
-    level = btcLastPrice()
 
     print("calculating Stop Loss:")
 
@@ -414,40 +413,19 @@ def calculateStopLoss():
             stop_loss = (entry_price - calculateOnePercentLessEntry())
         else:
             stop_loss = (entry_price + calculateOnePercentLessEntry())
-
         percentLevel = 0.25
-        print("Percent Gained: " + str(percentGained))
-        print("Percent Level: " + str(percentLevel))
-        print("Level: " + str(level))
-        print("Stop Loss: " + str(stop_loss))
-        print("")
     elif (percentGained >= 0.25) and (percentLevel >= 0.25) and (percentLevel < 0.5):
         stop_loss = entry_price
         percentLevel = 0.5
         level = btcLastPrice()
-        print("Percent Gained: " + str(percentGained))
-        print("Percent Level: " + str(percentLevel))
-        print("Level: " + str(level))
-        print("Stop Loss: " + str(stop_loss))
-        print("")
     elif (percentGained >= 0.5) and (percentLevel < 0.75):
         stop_loss = level
         percentLevel = 0.75
         level = btcLastPrice()
-        print("Percent Gained: " + str(percentGained))
-        print("Percent Level: " + str(percentLevel))
-        print("Level: " + str(level))
-        print("Stop Loss: " + str(stop_loss))
-        print("")
     elif (percentGained >= 0.75) and (percentLevel < 1.0):
         stop_loss = level
         percentLevel = 1.0
         level = btcLastPrice()
-        print("Percent Gained: " + str(percentGained))
-        print("Percent Level: " + str(percentLevel))
-        print("Level: " + str(level))
-        print("Stop Loss: " + str(stop_loss))
-        print("")
     elif (percentGained > (percentLevel + 0.5)):
         stop_loss = level
         percentLevel += 0.5
