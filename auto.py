@@ -16,13 +16,13 @@ client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
 async def main():
     flag = True
     temp = 0
-    tempCondition = 30
+    tempCondition = 60
 
     while(flag == True):
 
         strategy.checkInputs()
         strategy.initiateMarketTrade()
-        time.sleep(2)
+        time.sleep(1)
         temp += 1
         if (temp == tempCondition):
             print("waiting on input...")

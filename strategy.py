@@ -15,10 +15,10 @@ def checkInputs():
 def initiateMarketTrade():
     global vwap1min
     if (vwap1min == "crossover"):
-        vwap1min = "null"
+        comms.updateData("vwap", "1min", "null")
         bybit_info.createMarketOrder('Buy', 'BTCUSD')
     elif (vwap1min == "crossunder"):
-        vwap1min = "null"
+        comms.updateData("vwap", "1min", "null")
         bybit_info.createMarketOrder('Sell', 'BTCUSD')
 
 # add close order if vwap changes
