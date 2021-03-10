@@ -163,6 +163,7 @@ def calculateOnePercentLessEntry():
 
 
 def calculatePercentGained():
+    # value = inputQuantity / entry_price
     if(side == "Buy"):
         difference = (btcLastPrice() - float(entry_price))
     else:
@@ -477,7 +478,7 @@ def closePositionSl():
 
 def closePositionMarket():
     positionSize = getPositionSize()
-
+    flag = True
     if(side == "Sell"):
         client.Order.Order_new(side="Buy", symbol=symbol, order_type="Market",
                                qty=positionSize, time_in_force="GoodTillCancel").result()
@@ -485,10 +486,13 @@ def closePositionMarket():
         client.Order.Order_new(side="Sell", symbol=symbol, order_type="Market",
                                qty=positionSize, time_in_force="GoodTillCancel").result()
 
-    if (activePositionCheck() == 1):
-        print("Error Closing Position")
-    else:
-        print("Position Closed at: " + str(btcLastPrice()))
+    while(flag == True):
+        if (activePositionCheck() == 1):
+            print("Error Closing Position")
+            closePositionMarket()
+        else:
+            print("Position Closed at: " + str(btcLastPrice()))
+            flag = False
 
 
 def calculateStopLoss():
