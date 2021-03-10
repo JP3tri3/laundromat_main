@@ -2,7 +2,7 @@ import comms
 import bybit_info
 import asyncio
 
-vwap1min = 0
+vwap1min = ""
 
 
 def checkInputs():
@@ -12,11 +12,13 @@ def checkInputs():
     return vwap1min
 
 
-def initiateTrade():
+def initiateMarketTrade():
     global vwap1min
-    if vwap1min > 5:
-        bybit_info.createOrder('Buy', 'BTCUSD', 'Limit')
-        vwap1min = 0
-    elif vwap1min < -5:
-        bybit_info.createOrder('Sell', 'BTCUSD', "Limit")
-        vwap1min = 0
+    if (vwap1min == "crossover"):
+        vwap1min = "null"
+        bybit_info.createMarketOrder('Buy', 'BTCUSD')
+    elif (vwap1min == "crossunder"):
+        vwap1min = "null"
+        bybit_info.createMarketOrder('Sell', 'BTCUSD')
+
+# add close order if vwap changes

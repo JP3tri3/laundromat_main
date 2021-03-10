@@ -57,17 +57,17 @@ def viewData(name, key):
     return data[name][key]
 
 
-while True:
-    updateData('passphrase', '1')
-    time.sleep(3)
-    updateData('passphrase', '2')
-    time.sleep(3)
-    updateData('passphrase', '3')
-    time.sleep(3)
-    updateData('passphrase', '4')
-    time.sleep(3)
-    updateData('passphrase', '5')
-    time.sleep(3)
+# while True:
+#     updateData('passphrase', '1')
+#     time.sleep(3)
+#     updateData('passphrase', '2')
+#     time.sleep(3)
+#     updateData('passphrase', '3')
+#     time.sleep(3)
+#     updateData('passphrase', '4')
+#     time.sleep(3)
+#     updateData('passphrase', '5')
+#     time.sleep(3)
 # updateData('vwap', '1min', 50)
 
 # print(viewData('vwap', '1min'))
@@ -107,3 +107,35 @@ while True:
 
 
 # data = asyncio.Queue()
+
+inputQuantity = 500
+entry_price = 49000
+level = 49120
+percentGainedLock = 0.122
+market_type = "market"
+side = "Buy"
+totalGain = 0.0
+
+
+def calculateFees(market_type):
+    if (market_type == "market"):
+        entryFee = (inputQuantity) * 0.00075
+    else:
+        entryFee = (inputQuantity) * 0.00025
+    return entryFee
+
+
+def calculateTotalGain():
+    global totalGain
+
+    total = (inputQuantity * percentGainedLock)/100
+    if (market_type == "market"):
+        total = total - calculateFees("market")
+    else:
+        total = total + calculateFees("limit")
+    totalGain = total
+    return total
+
+
+calculateTotalGain()
+print(totalGain)

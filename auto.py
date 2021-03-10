@@ -21,7 +21,7 @@ async def main():
     while(flag == True):
 
         strategy.checkInputs()
-        strategy.initiateTrade()
+        strategy.initiateMarketTrade()
         time.sleep(2)
         temp += 1
         if (temp == tempCondition):

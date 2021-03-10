@@ -18,6 +18,9 @@ level = entry_price
 symbol = "BTCUSD"
 side = ""
 percentLevel = 0.0
+percentGainedLock = 0.0
+market_type = ""
+totalGain = 0.0
 
 
 def setInitialValues(inputSymbol):
@@ -132,7 +135,45 @@ def returnOrderID():
     print(orderId)
 
 
-# Active Checks
+def calculateFees(market_type):
+    if (market_type == "market"):
+        entryFee = (inputQuantity) * 0.00075
+    else:
+        entryFee = (inputQuantity) * 0.00025
+    print("Entry Fee: " + str(entryFee))
+    return entryFee
+
+
+def calculateTotalGain():
+    global totalGain
+
+    total = (inputQuantity * percentGainedLock)/100
+    if (market_type == "market"):
+        total = total - calculateFees("market")
+    else:
+        total = total + calculateFees("limit")
+
+    totalGain = total
+    return total
+
+
+def calculateOnePercentLessEntry():
+    onePercentDifference = (float(entry_price) * 0.01) / margin
+    return onePercentDifference
+
+
+def calculatePercentGained():
+    if(side == "Buy"):
+        difference = (btcLastPrice() - float(entry_price))
+    else:
+        difference = (float(entry_price) - btcLastPrice())
+
+    percent = (difference/btcLastPrice()) * 100
+    percentWithMargin = (percent) * margin
+    return float(percentWithMargin)
+
+    # Active Checks
+
 
 def activeOrderCheck():
     global orderId
@@ -273,7 +314,11 @@ def createOrder(sideInput, symbolInput, order_type):
     global side
     global symbol
     global percentLevel
+    global percentGainedLock
+    global market_type
 
+    market_type = order_type
+    percentGainedLock = 0.0
     percentLevel = 0.0
     symbol = symbolInput
     side = sideInput
@@ -302,8 +347,56 @@ def createOrder(sideInput, symbolInput, order_type):
     print("Entry Price: " + str(entry_price))
     print("Exit Price: " + str(stop_loss))
     print("Percent Level: " + str(percentLevel))
-    comms.logClosingDetails(entry_price, level, percentLevel, stop_loss, side)
+    comms.logClosingDetails(
+        entry_price, level, percentLevel, stop_loss, side, totalGain)
     comms.updateData("vwap", "1min", 0)
+
+
+def createMarketOrder(sideInput, symbolInput):
+    global orderPrice
+    global entry_price
+    global level
+    global side
+    global symbol
+    global percentLevel
+    global percentGainedLock
+    global market_type
+    global totalGain
+
+    market_type = "market"
+    percentGainedLock = 0.0
+    percentLevel = 0.0
+    symbol = symbolInput
+    side = sideInput
+    flag = False
+    entry_price = btcLastPrice()
+    totalGain = 0.0
+
+    while(flag == False):
+        if ((activeOrderCheck() == 0) and (activePositionCheck() == 0)):
+            print("Attempting to place order...")
+            placeOrder(order_type="Market", price=btcLastPrice())
+            orderPrice = btcLastPrice()
+        else:
+            print("")
+            print("Confirming Order...")
+            if ((activeOrderCheck() == 0) and (activePositionCheck() == 0)):
+                print("Order Failed or active position")
+            else:
+                entry_price = float(activePositionEntryPrice())
+                level = entry_price
+                print("Entry Price: " + str(entry_price))
+                print("Order Successful")
+                flag = True
+
+    updateStopLoss()
+    print("Entry Price: " + str(entry_price))
+    print("Exit Price: " + str(stop_loss))
+    print("Percent Level: " + str(percentLevel))
+    calculateTotalGain()
+    comms.logClosingDetails(
+        entry_price, level, percentGainedLock, stop_loss, side, totalGain)
+    print(totalGain)
 
 # Close & Stoploss
 
@@ -321,28 +414,33 @@ def updateStopLoss():
 
     while (flag == True):
         if(activePositionCheck() == 1):
-            if(side == "Buy"):
-                if(btcLastPrice() > level):
-                    calculateStopLoss()
-                    time.sleep(4)
-                else:
-                    print("Waiting...")
-                    print("Percent Gained: " + str(calculatePercentGained()))
-                    print("Level: " + str(level))
-                    print("BTC Price: " + str(btcLastPrice()))
-                    print("")
-                    time.sleep(4)
+            if (comms.viewData("vwap", "1min") != "null"):
+                closePositionMarket()
             else:
-                if(btcLastPrice() < level):
-                    calculateStopLoss()
-                    time.sleep(4)
+                if(side == "Buy"):
+                    if(btcLastPrice() > level):
+                        calculateStopLoss()
+                        time.sleep(4)
+                    else:
+                        print("Waiting...")
+                        print("Percent Gained: " +
+                              str(calculatePercentGained()))
+                        print("Level: " + str(level))
+                        print("BTC Price: " + str(btcLastPrice()))
+                        print("")
+                        time.sleep(4)
                 else:
-                    print("Waiting...")
-                    print("Percent Gained: " + str(calculatePercentGained()))
-                    print("Level: " + str(level))
-                    print("BTC Price: " + str(btcLastPrice()))
-                    print("")
-                    time.sleep(4)
+                    if(btcLastPrice() < level):
+                        calculateStopLoss()
+                        time.sleep(4)
+                    else:
+                        print("Waiting...")
+                        print("Percent Gained: " +
+                              str(calculatePercentGained()))
+                        print("Level: " + str(level))
+                        print("BTC Price: " + str(btcLastPrice()))
+                        print("")
+                        time.sleep(4)
         else:
             print("Position Closed")
             print("")
@@ -393,26 +491,11 @@ def closePositionMarket():
         print("Position Closed at: " + str(btcLastPrice()))
 
 
-def calculateOnePercentLessEntry():
-    onePercentDifference = (float(entry_price) * 0.01) / margin
-    return onePercentDifference
-
-
-def calculatePercentGained():
-    if(side == "Buy"):
-        difference = (btcLastPrice() - float(entry_price))
-    else:
-        difference = (float(entry_price) - btcLastPrice())
-
-    percent = (difference/btcLastPrice()) * 100
-    percentWithMargin = (percent) * margin
-    return float(percentWithMargin)
-
-
 def calculateStopLoss():
     global level
     global stop_loss
     global percentLevel
+    global percentGainedLock
     processTrigger = percentLevel
     percentGained = calculatePercentGained()
 
@@ -443,8 +526,9 @@ def calculateStopLoss():
 
     if (processTrigger != percentLevel):
         print("Changing Stop Loss")
+        percentGainedLock = percentGained
         changeStopLoss(stop_loss)
-        print("Percent Gained: " + str(percentGained))
+        print("Percent Gained: " + str(percentGainedLock))
         print("Percent Level: " + str(percentLevel))
         print("Level: " + str(level))
         print("Stop Loss: " + str(stop_loss))

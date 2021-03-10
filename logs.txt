@@ -1,123 +1,88 @@
-2021-03-08 00:34:59.510349
-Entry Price: 50536.54651434
-Exit Price: 50643.5
-Percent Gain: 0.75
-SL: 50643.0
+2021-03-09 22:49:20.183053
+Side: Sell
+Entry Price: 53643.00366489
+Exit Price: 53248.0
+Percent Gain: 3.7090939085974926
+SL: 53252.0
+Total Gain: 0.0
 
-2021-03-08 00:38:24.904412
-Entry Price: 50690.04356302
-Exit Price: 50771.0
-Percent Gain: 1.0
-SL: 50769.5
-
-2021-03-08 00:45:20.276983
-Entry Price: 50671.03653686
-Exit Price: 50634.5
-Percent Gain: 0.5
-SL: 50671.03653686
-
-2021-03-08 01:14:32.257054
+2021-03-09 22:52:18.558022
 Side: Buy
-Entry Price: 50780.54780024
-Exit Price: 50947.0
-Percent Gain: 1.5
-SL: 50861.5
+Entry Price: 53394.04592315
+Exit Price: 53460.0
+Percent Gain: 0.6168544411709784
+SL: 53439.5
+Total Gain: 0.0
 
-2021-03-08 01:22:00.650218
+2021-03-09 23:06:09.958494
 Side: Sell
-Entry Price: 50743.08168824
-Exit Price: 50525.5
-Percent Gain: 2.0
-SL: 50583.0
+Entry Price: 53463.18471637
+Exit Price: 53406.0
+Percent Gain: 0.5400634426229545
+SL: 53432.5
+Total Gain: 0.0
 
-2021-03-08 01:26:20.199245
-Side: Sell
-Entry Price: 50531.03060058
-Exit Price: 50501.0
-Percent Gain: 0.5
-SL: 50531.03060058
-
-2021-03-08 01:38:02.956173
+2021-03-09 23:09:10.389585
 Side: Buy
-Entry Price: 50579.5403736
-Exit Price: 50579.5403736
-Percent Gain: 0.25
-SL: 50478.3812928528
+Entry Price: 53545.86042308
+Exit Price: 53621.5
+Percent Gain: 1.230854138753331
+SL: 53618.5
+Total Gain: 0.0
 
-2021-03-08 01:40:45.376145
+2021-03-09 23:31:51.134853
 Side: Sell
-Entry Price: 50373.51964819
-Exit Price: 50323.0
-Percent Gain: 0.75
-SL: 50324.5
+Entry Price: 53615.56567103
+Exit Price: 53446.0
+Percent Gain: 1.5863270500131228
+SL: 53529.0
+Total Gain: 0.0
 
-2021-03-08 01:47:15.361144
+2021-03-09 23:39:15.459180
 Side: Sell
-Entry Price: 50317.50344675
-Exit Price: 50281.5
-Percent Gain: 0.5
-SL: 50317.50344675
-
-2021-03-08 01:52:08.100374
-Side: Buy
-Entry Price: 50349.52641235
-Exit Price: 50349.52641235
+Entry Price: 53574.03073864
+Exit Price: 53574.03073864
 Percent Gain: 0.0
-SL: 50317.50344675
+SL: 0
+Total Gain: -0.375
 
-2021-03-08 02:05:29.937619
-Side: Buy
-Entry Price: 50347.54913166
-Exit Price: 50443.0
-Percent Gain: 1.0
-SL: 50420.5
-
-2021-03-08 02:07:28.809549
-Side: Buy
-Entry Price: 50387.02272152
-Exit Price: 50387.02272152
+2021-03-09 23:39:22.798814
+Side: Sell
+Entry Price: 53585.28419491
+Exit Price: 53585.28419491
 Percent Gain: 0.0
-SL: 50420.5
+SL: 0
+Total Gain: -0.375
 
-2021-03-08 02:13:45.766835
+2021-03-09 23:39:30.134268
 Side: Sell
-Entry Price: 50267.01840175
-Exit Price: 49840.5
-Percent Gain: 3.0
-SL: 49984.0
+Entry Price: 53548.55568836
+Exit Price: 53548.55568836
+Percent Gain: 0.0
+SL: 0
+Total Gain: -0.375
 
-2021-03-08 02:17:38.051045
+2021-03-09 23:39:37.479134
 Side: Sell
-Entry Price: 49906.02695125
-Exit Price: 49853.0
-Percent Gain: 0.75
-SL: 49871.0
+Entry Price: 53549.07183394
+Exit Price: 53549.07183394
+Percent Gain: 0.0
+SL: 0
+Total Gain: -0.375
 
-2021-03-08 02:27:31.439364
-Side: Buy
-Entry Price: 49776.50349929
-Exit Price: 49862.5
-Percent Gain: 1.0
-SL: 49838.0
-
-2021-03-08 02:31:05.952196
-Side: Buy
-Entry Price: 49796.03543884
-Exit Price: 49796.03543884
-Percent Gain: 0.25
-SL: 49696.44336796232
-
-2021-03-08 02:39:18.467761
-Side: Buy
-Entry Price: 49855.51870679
-Exit Price: 49855.51870679
-Percent Gain: 0.25
-SL: 49755.807669376416
-
-2021-03-08 02:43:50.853865
+2021-03-09 23:39:44.943370
 Side: Sell
-Entry Price: 49738.5245763
-Exit Price: 49696.0
-Percent Gain: 0.5
-SL: 49738.5245763
+Entry Price: 53537.03102899
+Exit Price: 53537.03102899
+Percent Gain: 0.0
+SL: 0
+Total Gain: -0.375
+
+2021-03-09 23:39:52.417378
+Side: Sell
+Entry Price: 53542.59206113
+Exit Price: 53542.59206113
+Percent Gain: 0.0
+SL: 0
+Total Gain: -0.375
 

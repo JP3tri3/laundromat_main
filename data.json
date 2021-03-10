@@ -1,6 +1,6 @@
 {
     "vwap": {
-        "1min": -6,
+        "1min": "null",
         "3min": 0,
         "5min": 0
     },
@@ -8,7 +8,7 @@
         "1min": true,
         "3min": false
     },
-    "passphrase": "2",
+    "passphrase": "5",
     "mainTest_table_name": "Main",
     "mainTest_number_Of_trades": 0,
     "mainTest_percentage": 0
