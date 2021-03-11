@@ -7,6 +7,7 @@ class Bybit_Info:
     symbol = ""
     pairSymbol = ""
     keyInput = 0
+    limitPriceDifference = 0.0
     client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
                          api_secret=config.BYBIT_TESTNET_API_SECRET)
 
@@ -15,15 +16,21 @@ class Bybit_Info:
         global pairSymbol
         global keyInput
         global symbol
+        global limitPriceDifference
 
         pairSymbol = inputSymbol
 
         if (inputSymbol == "BTCUSD"):
             self.keyInput = 0
             self.symbol = "BTC"
+            self.limitPriceDifference = 0.50
         elif (inputSymbol == "ETHUSD"):
             self.keyInput = 1
             self.symbol = "ETH"
+            self.limitPriceDifference = 0.05
+
+    def getSymbol(self):
+        return self.inputSymbol
 
     def priceInfo(self):
 
@@ -54,3 +61,9 @@ class Bybit_Info:
         keys = info[0]['result']
         symbolInfo = keys[self.keyInput]['last_price']
         return float(symbolInfo)
+
+    def symbolInfo():
+        info = self.client.Market.Market_symbolInfo().result()
+        keys = info[0]['result']
+        info = keys[self.keyInput]
+        print(info)

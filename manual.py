@@ -8,8 +8,10 @@ import bybit
 import sys
 import asyncio
 from exchange.bybit_info import Bybit_Info
+from orders import Orders
 
 myTime = int(time.time() * 1000)
+inputSymbol = ""
 
 # client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
 #                      api_secret=config.BYBIT_TESTNET_API_SECRET)
@@ -52,7 +54,6 @@ async def inputOptions(symbol):
 
 
 async def main():
-    global pairSymbol
     global inputSymbol
     flag = True
     inputFlag = True
@@ -66,7 +67,8 @@ async def main():
         else:
             print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
-    symbol = Bybit_Info(inputSymbol)
+    # symbol = Bybit_Info(inputSymbol)
+    symbol = Orders(inputSymbol)
 
     await inputOptions(inputSymbol)
 
@@ -74,7 +76,7 @@ async def main():
 
         print("")
         taskInput = input("Input Task: ")
-        orders.timeStamp()
+        symbol.timeStamp()
 
         if(taskInput == "exit"):
             await shutdown()
@@ -83,62 +85,62 @@ async def main():
             symbol.priceInfo()
 
         elif(taskInput == "info"):
-            orders.btcInfo()
+            symbol.btcInfo()
 
         elif(taskInput == "long"):
-            orders.createOrder("Buy", "BTCUSD", "Limit")
+            symbol.createOrder("Buy", inputSymbol, "Limit")
 
         elif(taskInput == "short"):
-            orders.createOrder("Sell", "BTCUSD", "Limit")
+            symbol.createOrder("Sell", inputSymbol, "Limit")
 
         elif(taskInput == "long market"):
-            orders.createOrder("Buy", "BTCUSD", "Market")
+            symbol.createOrder("Buy", inputSymbol, "Market")
 
         elif(taskInput == "short market"):
-            orders.createOrder("Sell", "BTCUSD", "Market")
+            symbol.createOrder("Sell", inputSymbol, "Market")
 
         elif(taskInput == "wallet"):
             symbol.myWallet()
 
         elif(taskInput == "active"):
-            print(orders.activeOrderCheck())
+            print(symbol.activeOrderCheck())
 
         elif(taskInput == "stoploss"):
             orders.changeStopLoss(500)
             print("Updated Stop Loss")
 
         elif(taskInput == "closesl"):
-            orders.closePositionSl()
+            symbol.closePositionSl()
 
         elif(taskInput == "closem"):
-            orders.closePositionMarket()
+            symbol.closePositionMarket()
 
         elif(taskInput == "cancel"):
-            orders.cancelAllOrders()
+            symbol.cancelAllOrders()
             print("Orders Cancelled")
 
         elif(taskInput == "order id"):
             print("Order ID: ")
-            orders.returnOrderID()
+            symbol.returnOrderID()
 
         elif(taskInput == "position"):
             print("Position: ")
-            orders.activePositionCheck()
+            symbol.activePositionCheck()
 
         elif(taskInput == "atr"):
-            orders.inputAtr()
+            symbol.inputAtr()
 
         elif(taskInput == "test"):
-            print(orders.getPositionSize())
+            print(symbol.printLimit())
 
         elif(taskInput == "symbol"):
-            print(orders.getSymbol())
+            print(symbol.getSymbol())
 
         elif(taskInput == "side"):
-            print(orders.getSide())
+            print(symbol.getSide())
 
         elif(taskInput == "changesymbol"):
-            orders.setInitialValues()
+            symbol.setInitialValues()
 
         elif(taskInput == "update sl"):
             flag = False
