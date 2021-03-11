@@ -1,4 +1,5 @@
-import bybit_info
+from exchange.bybit_info import Bybit_Info
+import orders
 import json
 import time
 import asyncio
@@ -108,34 +109,37 @@ def viewData(name, key):
 
 # data = asyncio.Queue()
 
-inputQuantity = 500
-entry_price = 49000
-level = 49120
-percentGainedLock = 0.122
-market_type = "market"
-side = "Buy"
-totalGain = 0.0
+# inputQuantity = 500
+# entry_price = 49000
+# level = 49120
+# percentGainedLock = 0.122
+# market_type = "market"
+# side = "Buy"
+# totalGain = 0.0
 
 
-def calculateFees(market_type):
-    if (market_type == "market"):
-        entryFee = (inputQuantity) * 0.00075
-    else:
-        entryFee = (inputQuantity) * 0.00025
-    return entryFee
+# def calculateFees(market_type):
+#     if (market_type == "market"):
+#         entryFee = (inputQuantity) * 0.00075
+#     else:
+#         entryFee = (inputQuantity) * 0.00025
+#     return entryFee
 
 
-def calculateTotalGain():
-    global totalGain
+# def calculateTotalGain():
+#     global totalGain
 
-    total = (inputQuantity * percentGainedLock)/100
-    if (market_type == "market"):
-        total = total - calculateFees("market")
-    else:
-        total = total + calculateFees("limit")
-    totalGain = total
-    return total
+#     total = (inputQuantity * percentGainedLock)/100
+#     if (market_type == "market"):
+#         total = total - calculateFees("market")
+#     else:
+#         total = total + calculateFees("limit")
+#     totalGain = total
+#     return total
 
 
-calculateTotalGain()
-print(totalGain)
+# calculateTotalGain()
+# print(totalGain)
+
+test1 = Bybit_Info("ETHUSD")
+print(test1.lastPrice())
