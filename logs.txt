@@ -174,3 +174,11 @@ Percent Gain: 0.3305825857153626
 SL: 53630.51790991
 Total Gain: 1.277912928576813
 
+2021-03-11 00:17:41.844583
+Side: Buy
+Entry Price: 55590.0213688
+Exit Price: 55590.0213688
+Percent Gain: 0.0
+SL: 0
+Total Gain: 0.0
+

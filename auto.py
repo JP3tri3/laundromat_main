@@ -26,7 +26,7 @@ async def main():
         temp += 1
         if (temp == tempCondition):
             print("waiting on input...")
-            bybit_info.timeStamp()
+            comms.timeStamp()
             temp = 0
 
 

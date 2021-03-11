@@ -1,5 +1,4 @@
 import config
-import orders
 from time import time, sleep
 import json
 import time
@@ -7,14 +6,12 @@ import datetime
 import bybit
 import sys
 import asyncio
+import comms
 from exchange.bybit_info import Bybit_Info
-from orders import Orders
+from trade.orders import Orders
 
 myTime = int(time.time() * 1000)
 inputSymbol = ""
-
-# client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
-#                      api_secret=config.BYBIT_TESTNET_API_SECRET)
 
 
 async def shutdown():
@@ -76,7 +73,7 @@ async def main():
 
         print("")
         taskInput = input("Input Task: ")
-        symbol.timeStamp()
+        comms.timeStamp()
 
         if(taskInput == "exit"):
             await shutdown()
@@ -131,7 +128,7 @@ async def main():
             symbol.inputAtr()
 
         elif(taskInput == "test"):
-            print(symbol.printLimit())
+            print(symbol.getTheLastPrice())
 
         elif(taskInput == "symbol"):
             print(symbol.getSymbol())
@@ -155,16 +152,6 @@ async def main():
         else:
             print("Invalid Input, try again...")
             await inputOptions()
-
-
-# def priceTest():
-#     while(flag == True):
-#         timeStamp()
-#         info = client.Market.Market_symbolInfo().result()
-#         keys = info[0]['result']
-#         btcInfo = keys[0]['last_price']
-#         print(btcInfo)
-#         sleep(1)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

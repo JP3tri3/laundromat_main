@@ -1,5 +1,6 @@
 import bybit
 import config
+import database
 
 
 class Bybit_Info:
@@ -8,8 +9,7 @@ class Bybit_Info:
     pairSymbol = ""
     keyInput = 0
     limitPriceDifference = 0.0
-    client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
-                         api_secret=config.BYBIT_TESTNET_API_SECRET)
+    client = database.client
 
     def __init__(self, inputSymbol):
         self.inputSymbol = inputSymbol

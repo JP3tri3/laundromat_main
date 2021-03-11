@@ -1,6 +1,6 @@
 {
     "vwap": {
-        "1min": "crossunder",
+        "1min": 0,
         "3min": 0,
         "5min": 0
     },

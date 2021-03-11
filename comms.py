@@ -2,6 +2,11 @@ import json
 import datetime
 
 
+def timeStamp():
+    ct = datetime.datetime.now()
+    print("Time: ", ct)
+
+
 def updateData(name, key, value):
     access_file = open("data.json", "r")
     json_object = json.load(access_file)
