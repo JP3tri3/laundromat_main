@@ -9,7 +9,7 @@ class Bybit_Info:
     pairSymbol = ""
     keyInput = 0
     limitPriceDifference = 0.0
-    client = database.client
+    # Call Client
 
     def __init__(self, inputSymbol):
         self.inputSymbol = inputSymbol
@@ -20,14 +20,6 @@ class Bybit_Info:
 
         pairSymbol = inputSymbol
 
-        if (inputSymbol == "BTCUSD"):
-            self.keyInput = 0
-            self.symbol = "BTC"
-            self.limitPriceDifference = 0.50
-        elif (inputSymbol == "ETHUSD"):
-            self.keyInput = 1
-            self.symbol = "ETH"
-            self.limitPriceDifference = 0.05
 
     def getSymbol(self):
         return self.inputSymbol
