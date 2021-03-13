@@ -11,14 +11,12 @@ keyInput = None
 limitPriceDifference = None
 margin = None
 
-def setInitialValues(symbolInput, symbolPairInput, inputKeyInput, limitPriceDifferenceInput, marginInput):
-    global symbol
+def setInitialValues(symbolPairInput, inputKeyInput, limitPriceDifferenceInput, marginInput):
     global symbolPair
     global keyInput
     global limitPriceDifference
     global margin
 
-    symbol = symbolInput
     symbolPair = symbolPairInput
     keyInput = inputKeyInput
     limitPriceDifference = limitPriceDifferenceInput

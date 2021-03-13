@@ -8,17 +8,16 @@ symbolPair = None
 
 class Calc():
 
-    def __init__(self, symbolInput, symbolPairInput):
+    def __init__(self, symbolInput):
         global symbol
         global symbolPair
 
-        self.symbol = db.getSymbol()
         self.symbolPair = db.getSymbolPair()
 
-    api = Bybit_Api(symbol, symbolPair)
+    api = Bybit_Api(symbolPair)
 
 
-    def calccFees(self, market_type, inputQuantity):
+    def calcFees(self, market_type, inputQuantity):
         if (market_type == "market"):
             entryFee = (inputQuantity) * 0.00075
         else:
@@ -56,4 +55,3 @@ class Calc():
         else:
             limitPrice = self.api.lastPrice() + limitPriceDifference
         return limitPrice
-        

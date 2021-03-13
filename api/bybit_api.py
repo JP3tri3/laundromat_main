@@ -11,13 +11,16 @@ class Bybit_Api():
     client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
                          api_secret=config.BYBIT_TESTNET_API_SECRET)
 
-    def __init__(self, inputSymbol, inputSymbolPair):
+    def __init__(self, inputSymbolPair):
         global symbol
         global symbolPair
 
-        symbol = inputSymbol
         symbolPair = inputSymbolPair
 
+        if  (symbolPair == "BTCUSD"):
+            symbol = 'BTC'            
+        elif (symbolPair == "ETHUSD"):
+            symbol = "ETH"
 
     symbol = None
     symbolPair = None
@@ -92,5 +95,11 @@ class Bybit_Api():
             return False
         return order   
 
-    def getSymbol(self):
-        return self.getOrderId()
+#stop_loss
+
+    def changeStopLoss(self, slAmount):
+        client.Positions.Positions_tradingStop(
+            symbol=symbol, stop_loss=str(slAmount)).result()
+        print("")
+        print("Changed stop Loss to: " + str(slAmount))
+

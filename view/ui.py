@@ -13,6 +13,9 @@ class Ui:
     def start(self):
         flag = True
 
+        #manual Setters:
+        margin = 5
+
         while (flag == True):
             symbolPair = input("Enter Symbol: ").upper()
             if (symbolPair == "BTCUSD") or (symbolPair == "ETHUSD"):
@@ -21,13 +24,11 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbolPair == "BTCUSD"):
-            symbol = 'BTC'
-            db.setInitialValues(symbol, symbolPair, 0, 0.50)
+            db.setInitialValues(symbolPair, margin, 0, 0.50)
         elif (symbolPair == "ETHUSD"):
-            symbol = "ETH"
-            db.setInitialValues(symbol, symbolPair, 1, 0.05)
+            db.setInitialValues(symbolPair, margin, 1, 0.05)
 
-        self.api = Bybit_Api(symbol, symbolPair)
+        self.api = Bybit_Api(symbolPair)
         self.orders = Orders()
 
         self.inputOptions(symbolPair)
@@ -124,10 +125,10 @@ class Ui:
                 symbol.inputAtr()
 
             elif(taskInput == "test"):
-                self.orders.activeOrderCheck()
+                self.orders.placeOrder(self.api.lastPrice(), "Buy", "Market", 500, 5)
 
             elif(taskInput == "test1"):
-                print(self.orders.test())           
+                print(self.api.getSymbol())           
 
             elif(taskInput == "symbol"):
                 print(self.api.getSymbolPair())
