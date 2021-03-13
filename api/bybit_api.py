@@ -11,16 +11,17 @@ class Bybit_Api():
     client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
                          api_secret=config.BYBIT_TESTNET_API_SECRET)
 
-    symbol = None
-    symbolPair = None
-    keyInput = None
-
     def __init__(self, inputSymbol, inputSymbolPair):
         global symbol
         global symbolPair
 
         symbol = inputSymbol
         symbolPair = inputSymbolPair
+
+
+    symbol = None
+    symbolPair = None
+    keyInput = None
 
     def myWallet(self):
         myWallet = self.client.Wallet.Wallet_getBalance(
@@ -58,19 +59,38 @@ class Bybit_Api():
 
 
 #position:
-    def getPosition(self):
+    def getPositionResult(self):
         print("Getting Position...")
-        position = self.client.Positions.Positions_myPosition(
-            symbol=symbolPair).result()
-        return position[0]['result']
+        positionResult = self.client.Positions.Positions_myPosition(
+            symbol=self.symbolPair).result()
+        return positionResult[0]['result']
 
     def getPositionSide(self):
         positionResult = self.getPosition()
-        positionSide = positionResult['side']
-        return positionSide
+        return positionResult['side']
 
     def getPositionSize(self):
         positionResult = self.getPosition()
-        positionResult = positionResult['size']
-        return positionResult
+        return positionResult['size']
 
+    def getPositionValue(self):
+        positionResult = self.getPositionResult()
+        return positionResult['position_value']
+
+    def getActivatePositionEntryPrice(self):
+        positionResult = self.getPositionResult()
+        return float(positionResult['entry_price'])
+
+#trades:
+    def placeOrder(self, price, side, order_type, inputQuantity, stop_loss):
+        try:
+            print(f"sending order {price} - {side} {symbolPair} {order_type} {stop_loss}")
+            order = self.client.Order.Order_new(side=side, symbol=symbolPair, order_type=order_type,
+                                        qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+        except Exception as e:
+            print("an exception occured - {}".format(e))
+            return False
+        return order   
+
+    def getSymbol(self):
+        return self.getOrderId()

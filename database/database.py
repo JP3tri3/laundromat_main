@@ -9,18 +9,20 @@ symbol = None
 symbolPair = None
 keyInput = None
 limitPriceDifference = None
+margin = None
 
-
-def setInitialValues(inputSymbol, inputSymbolPair, inputKeyInput, inputLimitPriceDifference):
+def setInitialValues(symbolInput, symbolPairInput, inputKeyInput, limitPriceDifferenceInput, marginInput):
     global symbol
     global symbolPair
     global keyInput
     global limitPriceDifference
+    global margin
 
-    symbol = inputSymbol
-    symbolPair = inputSymbolPair
+    symbol = symbolInput
+    symbolPair = symbolPairInput
     keyInput = inputKeyInput
-    limitPriceDifference = inputLimitPriceDifference
+    limitPriceDifference = limitPriceDifferenceInput
+    margin = marginInput
 
 def getSymbol():
     return symbol
