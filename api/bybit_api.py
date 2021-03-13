@@ -36,6 +36,34 @@ class Bybit_Api():
     def getSymbolPair(self):
         return symbolPair
 
+    def symbolInfoResult():
+        info = self.client.Market.Market_symbolInfo().result()
+        return(info[0]['result'])
+
+    def symbolInfoKeys(self):
+        infoKeys = self.symbolInfoResult()
+        return infoKeys[db.keyInput]
+
+#price:
+
+    def priceInfo(self):
+
+        info = self.client.Market.Market_symbolInfo().result()
+        keys = info[0]['result']
+        keyInfo = keys[self.keyInput]
+
+        lastPrice = keyInfo['last_price']
+        markPrice = keyInfo['mark_price']
+        askPrice = keyInfo['ask_price']
+        indexPrice = keyInfo['index_price']
+
+        print("")
+        print("Last Price: " + pairSymbol + " " + lastPrice)
+        print("Mark Price: " + pairSymbol + " " + markPrice)
+        print("Ask Price: " + pairSymbol + " " + askPrice)
+        print("Index Price: " + pairSymbol + " " + indexPrice)
+        print("")
+
     def lastPrice(self):
         info = self.client.Market.Market_symbolInfo().result()
         keys = info[0]['result']
@@ -84,7 +112,7 @@ class Bybit_Api():
         positionResult = self.getPositionResult()
         return float(positionResult['entry_price'])
 
-#trades:
+#orders:
     def placeOrder(self, price, side, order_type, inputQuantity, stop_loss):
         try:
             print(f"sending order {price} - {side} {symbolPair} {order_type} {stop_loss}")
@@ -94,6 +122,12 @@ class Bybit_Api():
             print("an exception occured - {}".format(e))
             return False
         return order   
+
+    def changeOrderPrice(self, price):
+        order = client.Order.Order_replace(symbol=symbolPair, order_id=self.getOrderId(), p_r_price=str(price)).result()
+        return order
+
+
 
 #stop_loss
 

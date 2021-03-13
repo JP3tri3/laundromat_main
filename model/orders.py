@@ -96,13 +96,6 @@ class Orders():
         print(self.api.getOrderId())
         print("")
 
-    def changeOrderPrice(self, price, orderId):
-        global orderPrice
-        if (price != orderPrice):
-            client.Order.Order_replace(
-                symbol=symbol, order_id=orderId, p_r_price=str(price)).result()
-            comms.timeStamp()
-            print("Updating Order Price")
 
     def forceLimitOrder(self, orderId):
         flag = False
@@ -111,13 +104,13 @@ class Orders():
 
         while(flag == False):
             if (self.activeOrderCheck() == 1):
-                if (Bybit_Info.lastPrice(self) != currentPrice) and (Bybit_Info.lastPrice(self) != price):
+                if (self.api.lastPrice(self) != currentPrice) and (self.api.lastPrice(self) != price):
                     print("LastPrice: " + str(Bybit_Info.lastPrice(self)))
                     print("currentPrice: " + str(currentPrice))
                     print("price: " + str(price))
                     currentPrice = Bybit_Info.lastPrice(self)
                     price = self.calcLimitPriceDifference()
-                    self.changeOrderPrice(price, orderId)
+                    self.api.changeOrderPrice(price)
                     print("Order Price Updated: " + str(price))
                     print("")
                 time.sleep(2)
@@ -161,7 +154,7 @@ class Orders():
                     print("Order Successful")
                     flag = True
 
-        self.updateStopLoss()
+        self.sl.updateStopLoss()
         print("Entry Price: " + str(entry_price))
         print("Exit Price: " + str(stop_loss))
         print("Percent Level: " + str(percentLevel))
@@ -207,11 +200,11 @@ class Orders():
                     print("Order Successful")
                     flag = True
 
-        self.updateStopLoss()
+        self.sl.updateStopLoss()
         print("Entry Price: " + str(entry_price))
         print("Exit Price: " + str(stop_loss))
         print("Percent Level: " + str(percentLevel))
-        self.calculateTotalGain()
+        self.calc.calcTotalGain()
         comms.logClosingDetails(
             entry_price, level, percentGainedLock, stop_loss, side, totalGain)
         print(totalGain)
