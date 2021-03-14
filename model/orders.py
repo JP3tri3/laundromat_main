@@ -82,34 +82,19 @@ class Orders():
             else:
                 print("Invalid Input, try again...")
 
-
-    def placeOrder(self, price, side, order_type, inputQuantity, margin):
-
-        if(side == "Buy"):
-            stop_loss = self.api.lastPrice() - float(self.calc.calcOnePercentLessEntry(price, margin))
-        else:
-            stop_loss = self.api.lastPrice() + float(self.calc.calcOnePercentLessEntry(price, margin))
-        print("Initial Stop Loss: " + str(stop_loss))
-        self.api.placeOrder(price, side, order_type, inputQuantity, stop_loss)
-        print("Order placed successfully")
-        print("Order ID: ")
-        print(self.api.getOrderId())
-        print("")
-
-
-    def forceLimitOrder(self, orderId):
+    def forceLimitOrder(self):
         flag = False
-        currentPrice = Bybit_Info.lastPrice(self)
-        price = self.calcLimitPriceDifference()
+        currentPrice = self.api.lastPrice()
+        price = self.calc.calcLimitPriceDifference()
 
         while(flag == False):
             if (self.activeOrderCheck() == 1):
                 if (self.api.lastPrice(self) != currentPrice) and (self.api.lastPrice(self) != price):
-                    print("LastPrice: " + str(Bybit_Info.lastPrice(self)))
+                    print("LastPrice: " + str(self.api.lastPrice(self)))
                     print("currentPrice: " + str(currentPrice))
                     print("price: " + str(price))
-                    currentPrice = Bybit_Info.lastPrice(self)
-                    price = self.calcLimitPriceDifference()
+                    currentPrice = self.api.lastPrice(self)
+                    price = self.calc.calcLimitPriceDifference()
                     self.api.changeOrderPrice(price)
                     print("Order Price Updated: " + str(price))
                     print("")
@@ -117,97 +102,53 @@ class Orders():
             else:
                 flag = True
 
-    def createOrder(self, sideInput, symbolInput, order_type):
-        global orderPrice
-        global entry_price
+    def createOrder(self, side, order_type, stop_loss, inputQuantity):
         global level
-        global side
-        global symbol
         global percentLevel
         global percentGainedLock
-        global market_type
 
-        market_type = order_type
         percentGainedLock = 0.0
         percentLevel = 0.0
-        symbol = symbolInput
-        side = sideInput
         flag = False
-        entry_price = self.calcLimitPriceDifference()
+
+        if(side == "Buy"):
+            stop_loss = (self.api.lastPrice() - stop_loss)
+            print("TEST StopLoss = " + str(stop_loss))
+        else:
+            stop_loss = (self.api.lastPrice() + stop_loss)
 
         while(flag == False):
             if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                 print("Attempting to place order...")
-                self.placeOrder(order_type=order_type,
-                                price=self.calcLimitPriceDifference())
-                orderPrice = self.calcLimitPriceDifference()
+                entry_price = self.calc.calcLimitPriceDifference(side)
+                self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=inputQuantity, stop_loss=stop_loss)
             else:
-                self.forceLimitOrder(self.api.getOrderId())
+                if(order_type == 'Limit'):
+                    print("Order ID: " + self.api.getOrderId())
+                    self.forceLimitOrder(self.api.getOrderId())
+                
                 print("")
                 print("Confirming Order...")
+                
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Order Failed")
                 else:
-                    entry_price = float(self.activePositionEntryPrice())
+                    entry_price = float(self.api.getActivePositionEntryPrice())
                     level = entry_price
-                    print("Entry Price: " + str(entry_price))
+
                     print("Order Successful")
+                    print("Entry Price: " + str(entry_price))
+                    print("Initial Stop Loss: " + str(stop_loss))
+                    print("")
                     flag = True
 
-        self.sl.updateStopLoss()
-        print("Entry Price: " + str(entry_price))
-        print("Exit Price: " + str(stop_loss))
-        print("Percent Level: " + str(percentLevel))
-        comms.logClosingDetails(
-            entry_price, level, percentLevel, stop_loss, side, totalGain)
-        comms.updateData("vwap", "1min", 0)
-
-    def createMarketOrder(self, sideInput, symbolInput):
-        global orderPrice
-        global entry_price
-        global level
-        global side
-        global symbol
-        global percentLevel
-        global percentGainedLock
-        global market_type
-        global totalGain
-
-        market_type = "market"
-        percentGainedLock = 0.0
-        percentLevel = 0.0
-        symbol = symbolInput
-        side = sideInput
-        flag = False
-        entry_price = Bybit_Info.lastPrice(self)
-        totalGain = 0.0
-
-        while(flag == False):
-            if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
-                print("Attempting to place order...")
-                self.placeOrder(order_type="Market",
-                                price=Bybit_Info.lastPrice(self))
-                orderPrice = Bybit_Info.lastPrice(self)
-            else:
-                print("")
-                print("Confirming Order...")
-                if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
-                    print("Order Failed or active position")
-                else:
-                    entry_price = float(self.activePositionEntryPrice())
-                    level = entry_price
-                    print("Entry Price: " + str(entry_price))
-                    print("Order Successful")
-                    flag = True
-
-        self.sl.updateStopLoss()
-        print("Entry Price: " + str(entry_price))
-        print("Exit Price: " + str(stop_loss))
-        print("Percent Level: " + str(percentLevel))
-        self.calc.calcTotalGain()
-        comms.logClosingDetails(
-            entry_price, level, percentGainedLock, stop_loss, side, totalGain)
-        print(totalGain)
+        # self.sl.updateStopLoss()
+        # print("Entry Price: " + str(entry_price))
+        # print("Exit Price: " + str(stop_loss))
+        # print("Percent Level: " + str(percentLevel))
+        # comms.logClosingDetails(
+        #     entry_price, level, percentLevel, stop_loss, side, totalGain)
+        # comms.updateData("vwap", "1min", 0)
 
     def closePositionSl(self):
         flag = True

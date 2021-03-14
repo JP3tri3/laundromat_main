@@ -98,35 +98,42 @@ class Bybit_Api():
 
     def getPositionSide(self):
         positionResult = self.getPosition()
-        return positionResult['side']
+        return positionResult[0][data]['side']
 
     def getPositionSize(self):
         positionResult = self.getPosition()
-        return positionResult['size']
+        return positionResult[0][data]['size']
 
     def getPositionValue(self):
         positionResult = self.getPositionResult()
-        return positionResult['position_value']
+        return positionResult[0]['data']['position_value']
 
-    def getActivatePositionEntryPrice(self):
+    def getActivePositionEntryPrice(self):
         positionResult = self.getPositionResult()
-        return float(positionResult['entry_price'])
+        return float(positionResult[0]['data']['entry_price'])
 
 #orders:
-    def placeOrder(self, price, side, order_type, inputQuantity, stop_loss):
+    def placeOrder(self, price, order_type, side, inputQuantity, stop_loss):
+
         try:
-            print(f"sending order {price} - {side} {symbolPair} {order_type} {stop_loss}")
-            order = self.client.Order.Order_new(side=side, symbol=symbolPair, order_type=order_type,
-                                        qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+            if(order_type == 'Market'):
+                print(f"sending order {side} {symbolPair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=symbolPair, order_type="Market",
+                                            qty=inputQuantity, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+            elif(order_type == "Limit"):
+                print(f"sending order {price} - {side} {symbolPair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=symbolPair, order_type="Limit",
+                                            qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+            else:
+                print("Invalid Order")
         except Exception as e:
             print("an exception occured - {}".format(e))
             return False
-        return order   
+        return order
 
     def changeOrderPrice(self, price):
         order = client.Order.Order_replace(symbol=symbolPair, order_id=self.getOrderId(), p_r_price=str(price)).result()
         return order
-
 
 
 #stop_loss

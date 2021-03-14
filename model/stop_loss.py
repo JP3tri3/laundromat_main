@@ -10,6 +10,8 @@ class Stop_Loss():
 
         symbolPair = inputSymbolPair
 
+    symbolPair = None
+
     api = Bybit_Api(symbolPair)
 
     def updateStopLoss(self):

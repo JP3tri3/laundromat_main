@@ -125,10 +125,10 @@ class Ui:
                 symbol.inputAtr()
 
             elif(taskInput == "test"):
-                self.orders.placeOrder(self.api.lastPrice(), "Buy", "Market", 500, 5)
+                self.orders.createOrder("Buy", "Market", 100, 100)
 
             elif(taskInput == "test1"):
-                print(self.api.getSymbol())           
+                print(self.api.lastPrice())           
 
             elif(taskInput == "symbol"):
                 print(self.api.getSymbolPair())

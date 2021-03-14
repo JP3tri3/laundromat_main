@@ -49,9 +49,9 @@ class Calc():
         percentWithMargin = (percent) * margin
         return float(percentWithMargin)
 
-    def calcLimitPriceDifference(self, side, limitPriceDifference):
+    def calcLimitPriceDifference(self, side):
         if(side == "Buy"):
-            limitPrice = self.api.lastPrice() - limitPriceDifference
+            limitPrice = self.api.lastPrice() - db.getLimitPriceDifference()
         else:
-            limitPrice = self.api.lastPrice() + limitPriceDifference
+            limitPrice = self.api.lastPrice() + db.getLimitPriceDifference()
         return limitPrice
