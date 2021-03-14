@@ -8,13 +8,10 @@ symbolPair = None
 
 class Calc():
 
-    def __init__(self, symbolInput):
-        global symbol
-        global symbolPair
+    # def __init__(self):
 
-        self.symbolPair = db.getSymbolPair()
 
-    api = Bybit_Api(symbolPair)
+    api = Bybit_Api()
 
 
     def calcFees(self, market_type, inputQuantity):

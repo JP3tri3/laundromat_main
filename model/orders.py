@@ -40,9 +40,9 @@ class Orders():
         self.limitPriceDifference = db.getLimitPriceDifference()
         
 
-    api = Bybit_Api(symbolPair)
-    calc = Calc(symbolPair)
-    sl = Stop_Loss(symbolPair)
+    api = Bybit_Api()
+    calc = Calc()
+    sl = Stop_Loss()
 
     def test(self):
         return(self.symbolPair)
@@ -54,7 +54,6 @@ class Orders():
             print("no pending orders")
             return 0
         else:
-            self.orderId = self.api.getOrderId()
             return 1
 
     def activePositionCheck(self):
@@ -82,23 +81,24 @@ class Orders():
             else:
                 print("Invalid Input, try again...")
 
-    def forceLimitOrder(self):
+    def forceLimitOrder(self, side):
         flag = False
         currentPrice = self.api.lastPrice()
-        price = self.calc.calcLimitPriceDifference()
+        price = self.calc.calcLimitPriceDifference(side=side)
 
         while(flag == False):
             if (self.activeOrderCheck() == 1):
-                if (self.api.lastPrice(self) != currentPrice) and (self.api.lastPrice(self) != price):
-                    print("LastPrice: " + str(self.api.lastPrice(self)))
+                if (self.api.lastPrice() != currentPrice) and (self.api.lastPrice() != price):
+                    print("LastPrice: " + str(self.api.lastPrice()))
                     print("currentPrice: " + str(currentPrice))
                     print("price: " + str(price))
-                    currentPrice = self.api.lastPrice(self)
-                    price = self.calc.calcLimitPriceDifference()
+                    currentPrice = self.api.lastPrice()
+                    price = self.calc.calcLimitPriceDifference(side=side)
                     self.api.changeOrderPrice(price)
                     print("Order Price Updated: " + str(price))
                     print("")
                 time.sleep(2)
+
             else:
                 flag = True
 
@@ -111,36 +111,45 @@ class Orders():
         percentLevel = 0.0
         flag = False
 
-        if(side == "Buy"):
-            stop_loss = (self.api.lastPrice() - stop_loss)
-            print("TEST StopLoss = " + str(stop_loss))
+        if (self.activeOrderCheck() == 1):
+            print("Current Active Order...")
+            print("Create Order Cancelled")
+        elif (self.activePositionCheck() == 1):
+            print("Current Active Position...")
+            print("Create Order Cancelled")
         else:
-            stop_loss = (self.api.lastPrice() + stop_loss)
-
-        while(flag == False):
-            if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
-                print("Attempting to place order...")
-                entry_price = self.calc.calcLimitPriceDifference(side)
-                self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=inputQuantity, stop_loss=stop_loss)
+            if(side == "Buy"):
+                stop_loss = (self.api.lastPrice() - stop_loss)
+                print("TEST StopLoss = " + str(stop_loss))
             else:
-                if(order_type == 'Limit'):
-                    print("Order ID: " + self.api.getOrderId())
-                    self.forceLimitOrder(self.api.getOrderId())
-                
-                print("")
-                print("Confirming Order...")
-                
-                if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
-                    print("Order Failed")
-                else:
-                    entry_price = float(self.api.getActivePositionEntryPrice())
-                    level = entry_price
+                stop_loss = (self.api.lastPrice() + stop_loss)
 
-                    print("Order Successful")
-                    print("Entry Price: " + str(entry_price))
-                    print("Initial Stop Loss: " + str(stop_loss))
+            while(flag == False):
+                if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
+                    print("Attempting to place order...")
+                    entry_price = self.calc.calcLimitPriceDifference(side)
+                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=inputQuantity, stop_loss=stop_loss)
+                    
+                    if(order_type == 'Limit'):
+                        print("")
+                        print("Retrieving Order ID...")
+                        print("Order ID: " + str(self.api.getOrderId()))
+                        self.forceLimitOrder(side=side)
+                else:
                     print("")
-                    flag = True
+                    print("Confirming Order...")
+                    
+                    if((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
+                        print("Order Failed")
+                    else:
+                        entry_price = float(self.api.getActivePositionEntryPrice())
+                        level = entry_price
+                        print("")
+                        print("Order Successful")
+                        print("Entry Price: " + str(entry_price))
+                        print("Initial Stop Loss: " + str(stop_loss))
+                        print("")
+                        flag = True
 
         # self.sl.updateStopLoss()
         # print("Entry Price: " + str(entry_price))
@@ -152,38 +161,39 @@ class Orders():
 
     def closePositionSl(self):
         flag = True
-        stopLossInputPrice = Bybit_Info.lastPrice(self)
+        stopLossInputPrice = self.api.lastPrice()
         print("Forcing Close")
-        self.changeStopLoss(Bybit_Info.lastPrice(self) - float(2))
+        self.api.changeStopLoss(self.api.lastPrice() - float(2))
         time.sleep(5)
 
         while(flag == True):
             if(self.activePositionCheck() == 1):
-                if (Bybit_Info.lastPrice(self) > stopLossInputPrice):
-                    stopLossInputPrice = Bybit_Info.lastPrice(self)
+                if (self.api.lastPrice() > stopLossInputPrice):
+                    stopLossInputPrice = self.api.lastPrice()
                     print("")
                     print("Forcing Close")
                     comms.timeStamp()
-                    self.changeStopLoss(Bybit_Info.lastPrice(self) - float(2))
+                    self.api.changeStopLoss(self.api.lastPrice() - float(2))
                     time.sleep(5)
             else:
                 print("Position Closed")
                 flag = False
 
     def closePositionMarket(self):
-        positionSize = self.getPositionSize()
+        positionSize = self.api.getPositionSize()
         flag = True
-        if(side == "Sell"):
-            client.Order.Order_new(side="Buy", symbol=symbol, order_type="Market",
-                                   qty=positionSize, time_in_force="GoodTillCancel").result()
+        if(self.api.getPositionSide() == "Sell"):
+            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Buy', positionSize, 0)
         else:
-            client.Order.Order_new(side="Sell", symbol=symbol, order_type="Market",
-                                   qty=positionSize, time_in_force="GoodTillCancel").result()
+            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Sell', positionSize, 0)
 
         while(flag == True):
             if (self.activePositionCheck() == 1):
                 print("Error Closing Position")
                 self.closePositionMarket()
             else:
-                print("Position Closed at: " + str(Bybit_Info.lastPrice(self)))
+                print("Position Closed at: " + str(self.api.lastPrice()))
                 flag = False
+
+    def forceLimitClose(self):
+        positionSize = self.api.getPositionSize()

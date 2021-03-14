@@ -5,14 +5,9 @@ from api.bybit_api import Bybit_Api
 
 class Stop_Loss():
 
-    def __init__(self, inputSymbolPair):
-        global symbolPair
+    # def __init__(self):
 
-        symbolPair = inputSymbolPair
-
-    symbolPair = None
-
-    api = Bybit_Api(symbolPair)
+    api = Bybit_Api()
 
     def updateStopLoss(self):
         flag = True
