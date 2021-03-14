@@ -129,6 +129,4 @@ class Bybit_Api():
     def changeStopLoss(self, slAmount):
         self.client.Positions.Positions_tradingStop(
             symbol=db.getSymbolPair(), stop_loss=str(slAmount)).result()
-        print("")
-        print("Changed stop Loss to: " + str(slAmount))
 

@@ -195,5 +195,5 @@ class Orders():
                 print("Position Closed at: " + str(self.api.lastPrice()))
                 flag = False
 
-    def forceLimitClose(self):
-        positionSize = self.api.getPositionSize()
+    # def forceLimitClose(self):
+    #     positionSize = self.api.getPositionSize()

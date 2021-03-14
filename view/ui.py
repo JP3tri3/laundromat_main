@@ -124,9 +124,6 @@ class Ui:
             elif(taskInput == "test1"):
                 print(self.api.getOrderId())           
 
-            elif(taskInput == "test2"):
-                print(self.api.getPositionSide())
-
             elif(taskInput == "change"):
                 flag = False
                 self.start()
