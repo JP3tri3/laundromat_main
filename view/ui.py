@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 import database.database as db
-import controller.comms as commms
+import controller.comms as comms
 from api.bybit_api import Bybit_Api
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
@@ -74,7 +74,7 @@ class Ui:
 
             print("")
             taskInput = input("Input Task: ")
-            commms.timeStamp()
+            comms.timeStamp()
 
             if(taskInput == "exit"):
                 self.shutdown()
@@ -122,11 +122,10 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                self.calc.calcLimitPriceDifference('Buy')
+                comms.logClosingDetails()
 
             elif(taskInput == "test1"):
-                print(self.calc.calcLimitPriceDifference('Sell'))
-                print(self.calc.calcLimitPriceDifference('Buy'))
+                print(self.api.closedProfitLossQuantity(0))
 
             elif(taskInput == "change"):
                 flag = False

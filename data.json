@@ -8,8 +8,10 @@
         "1min": true,
         "3min": false
     },
-    "passphrase": "5",
-    "mainTest_table_name": "Main",
-    "mainTest_number_Of_trades": 0,
-    "mainTest_percentage": 0
+    "display": {
+        "mainTest_table_name": "Main",
+        "mainTest_number_Of_trades": 0,
+        "mainTest_profit_loss": 0
+    },
+    "passphrase": "5"
 }

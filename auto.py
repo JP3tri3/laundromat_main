@@ -20,6 +20,11 @@ async def main():
     symbolPair = 'BTCUSD'
     inputQuantity = 500
 
+#input true to clear
+    comms.clearDisplay(True)
+    comms.clearLogs(True)
+
+
     # flag = True
     # temp = 0
     # tempCondition = 30
@@ -37,16 +42,16 @@ async def main():
     #         temp = 0
 
 
-    db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
-    orders = Orders()
-    sl = Stop_Loss()
-    api = Bybit_Api()
+    # db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
+    # orders = Orders()
+    # sl = Stop_Loss()
+    # api = Bybit_Api()
 
-    print("Placing Orders")
-    orders.createOrder(side='Buy', order_type='Market', stop_loss=api.lastPrice() - 200, inputQuantity=inputQuantity)
-    print("Updating Stop Loss")
-    sl.updateStopLoss()
-
+    # print("Placing Orders")
+    # orders.createOrder(side='Buy', order_type='Market', stop_loss=100, inputQuantity=inputQuantity)
+    # print("Updating Stop Loss")
+    # sl.updateStopLoss()
+    # comms.logClosingDetails()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
