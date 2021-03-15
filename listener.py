@@ -1,5 +1,7 @@
+import sys
+sys.path.append("..")
+import controller.comms as comms
 import config
-import comms
 from time import time, sleep
 import json
 import time

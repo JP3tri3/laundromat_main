@@ -32,11 +32,12 @@ class Calc():
         return total
 
     def calcOnePercentLessEntry(self, entry_price, margin):
-        onePercentDifference = (float(entry_price) * 0.01) / margin
+        onePercentDifference = (float(self.api.getActivePositionEntryPrice()) * 0.01) / margin
         return onePercentDifference
 
     def calcPercentGained(self, side, entry_price):
         # value = inputQuantity / entry_price
+        entry_price = self.api.getActivePositionEntryPrice()
         if(side == "Buy"):
             difference = (self.api.lastPrice() - float(entry_price))
         else:
@@ -50,5 +51,5 @@ class Calc():
         if(side == "Buy"):
             limitPrice = self.api.lastPrice() - db.getLimitPriceDifference()
         else:
-            limitPrice = self.api.lastPrice() + db.getLimitPriceDifference()
+            limitPrice = self.api.lastPrice() + db.getLimitPriceDifference()             
         return limitPrice

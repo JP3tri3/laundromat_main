@@ -16,6 +16,7 @@ class Ui:
 
         #manual Setters:
         margin = 5
+        inputQuantity = 100 * margin
 
         while (flag == True):
             symbolPair = input("Enter Symbol: ").upper()
@@ -25,9 +26,9 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbolPair == "BTCUSD"):
-            db.setInitialValues('BTC', symbolPair, margin, 0, 0.50)
+            db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
         elif (symbolPair == "ETHUSD"):
-            db.setInitialValues('ETH', symbolPair, margin, 1, 0.05)
+            db.setInitialValues('ETH', symbolPair, margin, 1, 0.05, inputQuantity)
 
         self.api = Bybit_Api()
         self.orders = Orders()
@@ -83,16 +84,16 @@ class Ui:
                 self.api.symbolInfoResult()
 
             elif(taskInput == "long"):
-                self.orders.createOrder("Buy", symbolPair, "Limit")
+                self.orders.createOrder("Buy", 'Limit', 100, db.getInputQuantity())
 
             elif(taskInput == "short"):
-                self.orders.createOrder("Sell", symbolPair, "Limit")
+                self.orders.createOrder("Sell", 'Limit', 100, db.getInputQuantity())
 
             elif(taskInput == "long market"):
-                self.orders.createOrder("Buy", symbolPair, "Market")
+                self.orders.createOrder('Buy', 'Market', 100, db.getInputQuantity())
 
             elif(taskInput == "short market"):
-                self.orders.createOrder("Sell", symbolPair, "Market")
+                self.orders.createOrder("Sell", 'Market', 100, db.getInputQuantity())
 
             elif(taskInput == "wallet"):
                 self.api.myWallet()
@@ -119,10 +120,10 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                self.orders.createOrder("Buy", "Limit", 100, 100)
+                self.orders.forceLimitClose()
 
             elif(taskInput == "test1"):
-                print(self.api.getOrderId())           
+                    self.api.changeOrderPrice(self.api.lastPrice() + 50) 
 
             elif(taskInput == "change"):
                 flag = False

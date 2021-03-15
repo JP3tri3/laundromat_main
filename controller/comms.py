@@ -1,6 +1,8 @@
+import sys
+sys.path.append("..")
+import database.database as db
 import json
 import datetime
-
 
 def timeStamp():
     ct = datetime.datetime.now()
@@ -29,14 +31,21 @@ def viewData(name, key):
     return data[name][key]
 
 
-def logClosingDetails(entryPrice, exitPrice, percentGain, stopLoss, side, totalGain):
+def logClosingDetails():
+    entry_price = db.getEntryPrice()
+    exit_price = db.getEntryPrice()
+    percent_gain = db.getPercentGain()
+    stop_loss = db.getStopLoss()
+    side = db.getSide()
+    total_percent_gained = db.getTotalPercentGain()
+
     f = open("logs.txt", "a")
     f.write(str(datetime.datetime.now()) + "\n")
     f.write("Side: " + str(side) + "\n")
-    f.write("Entry Price: " + str(entryPrice) + "\n")
-    f.write("Exit Price: " + str(exitPrice) + "\n")
-    f.write("Percent Gain: " + str(percentGain) + "\n")
-    f.write("SL: " + str(stopLoss) + "\n")
-    f.write("Total Gain: " + str(totalGain) + "\n")
+    f.write("Entry Price: " + str(entry_price) + "\n")
+    f.write("Exit Price: " + str(exit_price) + "\n")
+    f.write("Percent Gain: " + str(total_percent_gained) + "\n")
+    f.write("SL: " + str(stop_loss) + "\n")
+    f.write("Total Gain: " + str(total_gain) + "\n")
     f.write("\n")
     f.close()

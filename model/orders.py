@@ -128,7 +128,7 @@ class Orders():
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")
                     entry_price = self.calc.calcLimitPriceDifference(side)
-                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=inputQuantity, stop_loss=stop_loss)
+                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=db.getInputQuantity(), stop_loss=stop_loss, reduce_only=False)
                     
                     if(order_type == 'Limit'):
                         print("")
@@ -143,7 +143,6 @@ class Orders():
                         print("Order Failed")
                     else:
                         entry_price = float(self.api.getActivePositionEntryPrice())
-                        level = entry_price
                         print("")
                         print("Order Successful")
                         print("Entry Price: " + str(entry_price))
@@ -152,9 +151,6 @@ class Orders():
                         flag = True
 
         # self.sl.updateStopLoss()
-        # print("Entry Price: " + str(entry_price))
-        # print("Exit Price: " + str(stop_loss))
-        # print("Percent Level: " + str(percentLevel))
         # comms.logClosingDetails(
         #     entry_price, level, percentLevel, stop_loss, side, totalGain)
         # comms.updateData("vwap", "1min", 0)
@@ -195,5 +191,38 @@ class Orders():
                 print("Position Closed at: " + str(self.api.lastPrice()))
                 flag = False
 
-    # def forceLimitClose(self):
-    #     positionSize = self.api.getPositionSize()
+
+    def forceLimitClose(self):
+        flag = False
+        currentPrice = self.api.lastPrice()
+        inputQuantity = self.api.getPositionSize()
+        side = self.api.getPositionSide()
+        print("CurrentPrice: " + str(currentPrice))
+        if(side == 'Buy'):
+            side = 'Sell'
+        else:
+            side = 'Buy'
+
+        while(flag == False):
+            if(self.activePositionCheck() == 1) and (self.activeOrderCheck() == 0):
+                print("Print Order Check")
+                price = self.calc.calcLimitPriceDifference(side=side)
+                self.api.placeOrder(price=price, order_type='Limit', side=side, inputQuantity=inputQuantity, stop_loss=0, reduce_only=True)
+                time.sleep(2)
+            elif (self.activePositionCheck() == 1) and (self.activePositionCheck() == 1):
+                if (self.api.lastPrice() != currentPrice) and (self.api.lastPrice() != price):
+                    print("LastPrice: " + str(self.api.lastPrice()))
+                    print("currentPrice: " + str(currentPrice))
+                    print("price: " + str(price))
+                    currentPrice = self.api.lastPrice()
+                    price = self.calc.calcLimitPriceDifference(side=side)
+                    print("Price change: " + str(price))
+                    self.api.changeOrderPrice(price)
+                    print("Order Price Updated: " + str(price))
+                    print("")
+                time.sleep(2)
+            elif(self.activePositionCheck() == 0) and (self.activeOrderCheck() == 0):
+                flag = True
+            else:
+                print("Something's fucking wrong.")
+                sleep(2)

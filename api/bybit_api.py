@@ -101,17 +101,17 @@ class Bybit_Api():
         return float(positionResult['entry_price'])
 
 #orders:
-    def placeOrder(self, price, order_type, side, inputQuantity, stop_loss):
+    def placeOrder(self, price, order_type, side, inputQuantity, stop_loss, reduce_only):
 
         try:
             if(order_type == 'Market'):
                 print(f"sending order {side} {db.getSymbolPair()} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=db.getSymbolPair(), order_type="Market",
-                                            qty=inputQuantity, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+                                            qty=inputQuantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {db.getSymbolPair()} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=db.getSymbolPair(), order_type="Limit",
-                                            qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss)).result()
+                                            qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:
@@ -120,7 +120,8 @@ class Bybit_Api():
         return order
 
     def changeOrderPrice(self, price):
-        order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), order_id=self.getOrderId(), p_r_price=str(price)).result()
+        order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), order_id=str(self.getOrderId()), p_r_price=str(price)).result()
+        # order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), p_r_price=str(price)).result()
         return order
 
 
