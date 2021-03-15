@@ -15,41 +15,37 @@ class Calc():
 
 
     def calcFees(self, market_type, inputQuantity):
-        if (market_type == "market"):
-            entryFee = (inputQuantity) * 0.00075
-        else:
-            entryFee = (inputQuantity) * 0.00025
-        print("Entry Fee: " + str(entryFee))
-        return entryFee
+        return (inputQuantity) * 0.00075 if (market_type == "Market") \
+            else (inputQuantity) * 0.00025
 
     def calcTotalGain(self, market_type, inputQuantity, percentGained):
         total = (inputQuantity * percentGainedLock)/100
-        if (market_type == "market"):
-            total = total - self.calculateFees("market")
-        else:
-            total = total + self.calculateFees("limit")
+        return total - self.calcFees("Market") if (market_type == "Market") \
+            else total + self.calcFees("Limit")
 
-        return total
 
-    def calcOnePercentLessEntry(self, entry_price, margin):
-        onePercentDifference = (float(self.api.getActivePositionEntryPrice()) * 0.01) / margin
-        return onePercentDifference
-
-    def calcPercentGained(self, side, entry_price):
-        # value = inputQuantity / entry_price
+    def calcOnePercentLessEntry(self):
+        margin = db.getMargin()
         entry_price = self.api.getActivePositionEntryPrice()
-        if(side == "Buy"):
-            difference = (self.api.lastPrice() - float(entry_price))
-        else:
-            difference = (float(entry_price) - self.api.lastPrice())
+        return(float(entry_price) * 0.01) / margin
+         
 
-        percent = (difference/self.api.lastPrice()) * 100
-        percentWithMargin = (percent) * margin
-        return float(percentWithMargin)
+    def calcPercentGained(self):
+        # value = inputQuantity / entry_price
+        side = self.api.getPositionSide()
+        entry_price = self.api.getActivePositionEntryPrice()
+        lastPrice = self.api.lastPrice()
+        margin = db.getMargin()
+
+        difference = (lastPrice - entry_price) if(side == "Buy") \
+            else (entry_price - lastPrice)
+
+        percent = (difference/lastPrice) * 100
+        return float(percent * margin)
 
     def calcLimitPriceDifference(self, side):
-        if(side == "Buy"):
-            limitPrice = self.api.lastPrice() - db.getLimitPriceDifference()
-        else:
-            limitPrice = self.api.lastPrice() + db.getLimitPriceDifference()             
-        return limitPrice
+        lastPrice = self.api.lastPrice()
+        difference = db.getLimitPriceDifference()
+
+        return (lastPrice - difference) if (side == 'Buy') \
+            else (lastPrice + difference)

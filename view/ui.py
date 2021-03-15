@@ -5,6 +5,7 @@ import controller.comms as commms
 from api.bybit_api import Bybit_Api
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
+from model.calc import Calc
 
 class Ui:
 
@@ -33,6 +34,7 @@ class Ui:
         self.api = Bybit_Api()
         self.orders = Orders()
         self.sl = Stop_Loss()
+        self.calc = Calc()
 
         self.inputOptions(symbolPair)
         self.startMenu(symbolPair)
@@ -120,10 +122,11 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                self.orders.forceLimitClose()
+                self.calc.calcLimitPriceDifference('Buy')
 
             elif(taskInput == "test1"):
-                    self.api.changeOrderPrice(self.api.lastPrice() + 50) 
+                print(self.calc.calcLimitPriceDifference('Sell'))
+                print(self.calc.calcLimitPriceDifference('Buy'))
 
             elif(taskInput == "change"):
                 flag = False

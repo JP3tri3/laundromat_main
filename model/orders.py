@@ -5,7 +5,6 @@ import database.database as db
 from api.bybit_api import Bybit_Api
 import controller.comms as comms
 from model.calc import Calc
-from model.stop_loss import Stop_Loss
 import time
 
 symbol = None
@@ -42,7 +41,6 @@ class Orders():
 
     api = Bybit_Api()
     calc = Calc()
-    sl = Stop_Loss()
 
     def test(self):
         return(self.symbolPair)
@@ -50,19 +48,13 @@ class Orders():
     def activeOrderCheck(self):
         global orderId
         order = self.api.getOrder()
-        if (order == []):
-            print("no pending orders")
-            return 0
-        else:
-            return 1
+        return 0 if (order == []) else 1
+
 
     def activePositionCheck(self):
         try:
             positionValue = self.api.getPositionValue()
-            if(positionValue != "0"):
-                return 1
-            else:
-                return 0
+            return 1 if (positionValue != '0') else 0
         except Exception as e:
             print("Active Position Check Exception Occured...")
             print("Trying again...")
@@ -118,11 +110,9 @@ class Orders():
             print("Current Active Position...")
             print("Create Order Cancelled")
         else:
-            if(side == "Buy"):
-                stop_loss = (self.api.lastPrice() - stop_loss)
-                print("TEST StopLoss = " + str(stop_loss))
-            else:
-                stop_loss = (self.api.lastPrice() + stop_loss)
+            stop_loss = (self.api.lastPrice() - stop_loss) if (side == 'Buy') \
+                else (self.api.lastPrice() + stop_loss)
+            print("TEST StopLoss = " + str(stop_loss))
 
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
@@ -198,10 +188,8 @@ class Orders():
         inputQuantity = self.api.getPositionSize()
         side = self.api.getPositionSide()
         print("CurrentPrice: " + str(currentPrice))
-        if(side == 'Buy'):
-            side = 'Sell'
-        else:
-            side = 'Buy'
+
+        side = 'Sell' if (side == 'Buy') else 'Buy'
 
         while(flag == False):
             if(self.activePositionCheck() == 1) and (self.activeOrderCheck() == 0):

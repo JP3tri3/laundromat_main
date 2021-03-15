@@ -121,7 +121,6 @@ class Bybit_Api():
 
     def changeOrderPrice(self, price):
         order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), order_id=str(self.getOrderId()), p_r_price=str(price)).result()
-        # order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), p_r_price=str(price)).result()
         return order
 
 

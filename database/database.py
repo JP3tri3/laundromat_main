@@ -94,3 +94,9 @@ def setTotalPercentGain(totalPercentGainInput):
 def getTotalPercentGain():
     return total_percent_gained
 
+def getMargin():
+    return margin
+
+def setMargin(marginInput):
+    global margin
+    margin = marginInput

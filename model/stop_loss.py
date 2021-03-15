@@ -3,8 +3,11 @@ import sys
 sys.path.append("..")
 import database.database as db
 from api.bybit_api import Bybit_Api
-# from model.orders import Orders
 from model.calc import Calc
+from model.orders import Orders
+
+percent_level = 0
+level = 0
 
 class Stop_Loss():
 
@@ -13,9 +16,7 @@ class Stop_Loss():
 
     api = Bybit_Api()
     calc = Calc()
-
-    percent_level = 0
-    level = 0
+    orders = Orders()
 
     def changeStopLoss(self, slAmount):
         self.api.changeStopLoss(slAmount)
@@ -25,33 +26,34 @@ class Stop_Loss():
     def updateStopLoss(self):
         flag = True
         level = self.api.getActivePositionEntryPrice()
+        side = self.api.getPositionSide()
 
         while (flag == True):
-            if(self.activePositionCheck() == 1):
+            if(self.orders.activePositionCheck() == 1):
                 if(side == "Buy"):
-                    if(self.api.lastPrice(self) > level):
+                    if(self.api.lastPrice() > level):
                         self.calculateStopLoss()
                         level = db.getLevel()
                         time.sleep(4)
                     else:
                         print("Waiting...")
                         print("Percent Gained: " +
-                            str(self.calc.calculatePercentGained()))
+                            str(self.calc.calcPercentGained()))
                         print("Level: " + str(level))
-                        print("BTC Price: " + str(self.api.lastPrice(self)))
+                        print("BTC Price: " + str(self.api.lastPrice()))
                         print("")
                         time.sleep(4)
                 else:
-                    if(self.api.lastPrice(self) < level):
+                    if(self.api.lastPrice() < level):
                         self.calculateStopLoss()
                         level = db.getLevel()
                         time.sleep(4)
                     else:
                         print("Waiting...")
                         print("Percent Gained: " +
-                            str(self.calc.calculatePercentGained()))
+                            str(self.calc.calcPercentGained()))
                         print("Level: " + str(level))
-                        print("Price: " + str(self.api.lastPrice(self)))
+                        print("Price: " + str(self.api.lastPrice()))
                         print("")
                         time.sleep(4)
             else:
@@ -66,7 +68,7 @@ class Stop_Loss():
         global percent_gained_lock
         level = db.getLevel()
         pre_percent_level = percent_level
-        percentGained = self.calculatePercentGained()
+        percentGained = self.calc.calcPercentGained()
 
         print("calculating Stop Loss:")
         print("Level before calc: " + str(level))
