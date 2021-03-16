@@ -6,26 +6,13 @@ from api.bybit_api import Bybit_Api
 import controller.comms as comms
 from model.calc import Calc
 import time
+import asyncio
 
 symbol = None
 symbolPair = None
 limitPriceDifference = None
 orderId = None
 atr = None
-
-# orderId = ""
-# orderPrice = 0
-# margin = 5.0
-# inputQuantity = 100 * margin
-# entry_price = 0.0
-# stop_loss = 0
-# level = entry_price
-# symbolPair = ""
-# side = ""
-# percentLevel = 0.0
-# percentGainedLock = 0.0
-# market_type = ""
-# totalGain = 0.0
 
 class Orders():
 
@@ -140,11 +127,6 @@ class Orders():
                         print("")
                         flag = True
 
-        # self.sl.updateStopLoss()
-        # comms.logClosingDetails(
-        #     entry_price, level, percentLevel, stop_loss, side, totalGain)
-        # comms.updateData("vwap", "1min", 0)
-
     def closePositionSl(self):
         flag = True
         stopLossInputPrice = self.api.lastPrice()
@@ -169,9 +151,9 @@ class Orders():
         positionSize = self.api.getPositionSize()
         flag = True
         if(self.api.getPositionSide() == "Sell"):
-            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Buy', positionSize, 0)
+            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Buy', positionSize, 0, True)
         else:
-            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Sell', positionSize, 0)
+            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Sell', positionSize, 0, True)
 
         while(flag == True):
             if (self.activePositionCheck() == 1):
@@ -180,7 +162,7 @@ class Orders():
             else:
                 print("Position Closed at: " + str(self.api.lastPrice()))
                 flag = False
-
+        comms.logClosingDetails()
 
     def forceLimitClose(self):
         flag = False

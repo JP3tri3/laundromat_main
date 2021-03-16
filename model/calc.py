@@ -18,10 +18,33 @@ class Calc():
         return (inputQuantity) * 0.00075 if (market_type == "Market") \
             else (inputQuantity) * 0.00025
 
-    def calcTotalGain(self, market_type, inputQuantity, percentGained):
-        total = (inputQuantity * percentGainedLock)/100
-        return total - self.calcFees("Market") if (market_type == "Market") \
-            else total + self.calcFees("Limit")
+    def calcLastGain(self, index):
+        total = self.api.lastProfitLoss(index)
+        exitPrice = float(self.api.exitPriceProfitLoss(index))
+        return round(float("%.10f" % total) * exitPrice, 3)
+
+    def calcTotalGain(self):
+        total = 0
+        flag = False
+        index = 0
+        totalQuantity = 0
+
+        while(flag == False):
+            inputQuantity = db.getInputQuantity()
+            totalQuantity += self.api.closedProfitLossQuantity(index)
+            total += self.calcLastGain(index)
+
+            if totalQuantity < inputQuantity:
+                index += 1
+            else:
+                flag = True
+        
+        return total
+        
+
+
+
+
 
 
     def calcOnePercentLessEntry(self):
@@ -41,7 +64,7 @@ class Calc():
             else (entry_price - lastPrice)
 
         percent = (difference/lastPrice) * 100
-        return float(percent * margin)
+        return float(round(percent * margin, 3))
 
     def calcLimitPriceDifference(self, side):
         lastPrice = self.api.lastPrice()

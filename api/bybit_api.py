@@ -130,3 +130,19 @@ class Bybit_Api():
         self.client.Positions.Positions_tradingStop(
             symbol=db.getSymbolPair(), stop_loss=str(slAmount)).result()
 
+#Profit & Loss
+    def closedProfitLoss(self):
+        records = self.client.Positions.Positions_closePnlRecords(symbol="BTCUSD").result()
+        return records[0]['result']['data']
+
+    def closedProfitLossQuantity(self, index):
+        recordResults = self.closedProfitLoss()
+        return recordResults[index]['closed_size']
+
+    def lastProfitLoss(self, index):
+        recordResult = self.closedProfitLoss()
+        return recordResult[index]['closed_pnl']
+
+    def exitPriceProfitLoss(self, index):
+        recordResult = self.closedProfitLoss()
+        return recordResult[0]['avg_exit_price']

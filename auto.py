@@ -12,46 +12,41 @@ import datetime
 
 import asyncio
 
-
-
 async def main():
 
     margin = 5
     symbolPair = 'BTCUSD'
     inputQuantity = 500
 
+    orders = Orders()
+    sl = Stop_Loss()
+    api = Bybit_Api()
+
 #input true to clear
     comms.clearDisplay(True)
     comms.clearLogs(True)
 
+    db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
 
-    # flag = True
-    # temp = 0
-    # tempCondition = 30
+    flag = True
+    temp = 0
+    tempCondition = 60
 
-    # while(flag == True):
+    while(flag == True):
+        strategy.vwapStrategy1Min()
+        sleep(1)
+        temp += 1
+        if (temp == tempCondition):
+            print("waiting on input...")
+            comms.timeStamp()
+            temp = 0
 
-    #     strategy.checkInputs()
-
-    #     strategy.initiateMarketTradeVwap()
-    #     time.sleep(1)
-    #     temp += 1
-    #     if (temp == tempCondition):
-    #         print("waiting on input...")
-    #         comms.timeStamp()
-    #         temp = 0
+    
 
 
-    # db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
-    # orders = Orders()
-    # sl = Stop_Loss()
-    # api = Bybit_Api()
+        
 
-    # print("Placing Orders")
-    # orders.createOrder(side='Buy', order_type='Market', stop_loss=100, inputQuantity=inputQuantity)
-    # print("Updating Stop Loss")
-    # sl.updateStopLoss()
-    # comms.logClosingDetails()
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

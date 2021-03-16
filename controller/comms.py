@@ -1,13 +1,18 @@
 import sys
 sys.path.append("..")
 import database.database as db
+from model.calc import Calc
 import json
 import datetime
+
+total_profit_loss = 0
+total_number_trades = 0
+
+calc = Calc()
 
 def timeStamp():
     ct = datetime.datetime.now()
     print("Time: ", ct)
-
 
 def updateData(name, key, value):
     access_file = open("data.json", "r")
@@ -20,8 +25,17 @@ def updateData(name, key, value):
     json.dump(json_object, access_file, indent=4)
     access_file.close()
     print("Json Updated")
-    print(json_object)
 
+def updateDisplayData(key, value):
+    access_file = open("data.json", "r")
+    json_object = json.load(access_file)
+    access_file.close()
+
+    json_object[key] = value
+
+    access_file = open("data.json", "w")
+    json.dump(json_object, access_file, indent=4)
+    access_file.close()
 
 def viewData(name, key):
     output = ''
@@ -30,14 +44,37 @@ def viewData(name, key):
         f.close()
     return data[name][key]
 
+def updateDataPersistent(data):
+        inputName = data['input_name']
+        lastCandleHigh = data['last_candle_high']
+        lastCandleLow = data['last_candle_low']
+        lastCandleVwap = data['last_candle_vwap']
+        codeRedNotice = data['code_red']
+
+        updateData(inputName, 'last_candle_high', lastCandleHigh)
+        updateData(inputName, 'last_candle_low', lastCandleLow)
+        updateData(inputName, 'last_candle_vwap', lastCandleVwap)
+        updateData('notice', 'code_red', codeRedNotice)
+
+def updateDataOnAlert(data):
+        inputName = data['name']
+        inputKey = data['key']
+        inputValue = data['value']
+
+        updateData(inputName, inputKey, inputValue)
+
 
 def logClosingDetails():
+    global total_profit_loss
+    global total_number_trades
+
     entry_price = db.getEntryPrice()
-    exit_price = db.getEntryPrice()
-    percent_gain = db.getPercentGain()
+    exit_price = db.getExitPrice()
+    percent_gain = db.getTotalPercentGain()
     stop_loss = db.getStopLoss()
     side = db.getSide()
     total_percent_gained = db.getTotalPercentGain()
+    total_gain = calc.calcTotalGain()
 
     f = open("logs.txt", "a")
     f.write(str(datetime.datetime.now()) + "\n")
@@ -49,3 +86,31 @@ def logClosingDetails():
     f.write("Total Gain: " + str(total_gain) + "\n")
     f.write("\n")
     f.close()
+    print("Logged Closing Details")
+
+    total_number_trades += 1
+    total_profit_loss += total_gain 
+
+    updateDisplayData('mainTest_number_Of_trades', total_number_trades)
+    updateDisplayData('mainTest_profit_loss', round(total_profit_loss, 4))
+
+def clearDisplay(flag):
+    if(flag == True):
+        updateDisplayData('mainTest_number_Of_trades', 0)
+        updateDisplayData('mainTest_profit_loss', 0)
+        print("Display Cleared")
+
+        updateData('1_min', 'last_candle_high', 0)
+        updateData('1_min', 'last_candle_low', 0)
+        updateData('1_min', 'last_candle_vwap', 0)
+
+        updateData('notice', 'active_position', 'null')
+        updateData('notice', 'new_trend', 'null')
+        updateData('notice', 'active_trend', 'null')
+
+def clearLogs(flag):
+    if(flag == True):
+        file = open("logs.txt","r+")
+        file.truncate(0)
+        file.close()
+        print("Logs Cleared")

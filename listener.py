@@ -11,6 +11,7 @@ from sanic import response
 from sanic.request import Request
 from sanic.response import json
 from sanic_jinja2 import SanicJinja2
+import strategy as strat
 
 app = Sanic(__name__)
 jinja = SanicJinja2(app, pkg_name="listener")
@@ -29,9 +30,7 @@ async def webhook(request):
 
     data = request.json
 
-    inputName = data['name']
-    inputKey = data['key']
-    inputValue = data['value']
+    persistent_data = data['persistent_data']
 
     if data['passphrase'] != config.WEBHOOK_PASSPHRASE:
         print("invalid passphrase")
@@ -40,12 +39,21 @@ async def webhook(request):
             "message": "Invalid Passphrase"
         })
     else:
-        comms.updateData(inputName, inputKey, inputValue)
+        if(persistent_data == 'True'):
+
+            comms.updateDataPersistent(data)
+
+        else:
+
+            comms.updateDataOnAlert(data)
+
+        #strategy:
+        strat.determineVwapTrend()
+
         return json({
             "code": "success",
             "message": "json updated"
         })
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)

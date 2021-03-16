@@ -1,17 +1,50 @@
 {
-    "vwap": {
-        "1min": "null",
-        "3min": 0,
-        "5min": 0
-    },
     "momentum": {
         "1min": true,
         "3min": false
     },
-    "display": {
-        "mainTest_table_name": "Main",
-        "mainTest_number_Of_trades": 0,
-        "mainTest_profit_loss": 0
+    "1_min": {
+        "last_candle_high": 57000,
+        "last_candle_low": 42000,
+        "last_candle_vwap": -10
     },
-    "passphrase": "5"
+    "3_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "6_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "12_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "24_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "2_hr": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "4_hr": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0
+    },
+    "notice": {
+        "code_red": "False",
+        "active_position": "null",
+        "new_trend": "not_enough_information",
+        "active_trend": "cross_down"
+    },
+    "mainTest_table_name": "Main",
+    "mainTest_number_Of_trades": 2,
+    "mainTest_profit_loss": -1.5870000000000002
 }

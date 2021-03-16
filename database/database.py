@@ -10,7 +10,7 @@ symbolPair = None
 keyInput = None
 limitPriceDifference = None
 margin = None
-level = None
+level = 0.0
 entry_price = None
 stop_loss = None
 exit_price = None
@@ -89,7 +89,7 @@ def getExitPrice():
 
 def setTotalPercentGain(totalPercentGainInput):
     global total_percent_gained
-    total_percent_gained = percentGainInput
+    total_percent_gained = totalPercentGainInput
 
 def getTotalPercentGain():
     return total_percent_gained

@@ -12,7 +12,7 @@
         <tr>
             <th>TEST</th>
             <th># of Trades</th>
-            <th>Total Percent</th>
+            <th>Total P&L</th>
         </tr>
         <tr>
             <td>
@@ -22,7 +22,7 @@
                 <div id="mainTest_number_Of_trades"></div>
             </td>
             <td>
-                <div id="mainTest_percentage"></div>
+                <div id="mainTest_profit_loss"></div>
             </td>
         </tr>
         <tr>
@@ -57,7 +57,7 @@
             .then(data => {
                 document.querySelector("#mainTest_table_name").innerText = data.mainTest_table_name
                 document.querySelector("#mainTest_number_Of_trades").innerText = data.mainTest_number_Of_trades
-                document.querySelector("#mainTest_percentage").innerText = data.mainTest_percentage
+                document.querySelector("#mainTest_profit_loss").innerText = data.mainTest_profit_loss
             })
     </script>
 </body>
