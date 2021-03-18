@@ -9,7 +9,7 @@ symbol = None
 symbolPair = None
 keyInput = None
 limitPriceDifference = None
-margin = None
+leverage = None
 level = 0.0
 entry_price = None
 stop_loss = None
@@ -17,19 +17,19 @@ exit_price = None
 side = None
 total_percent_gained = 0
 
-def setInitialValues(symbolInput, symbolPairInput, marginInput, inputKeyInput, limitPriceDifferenceInput, inputQuantityInput):
+def setInitialValues(symbolInput, symbolPairInput, leverageInput, inputKeyInput, limitPriceDifferenceInput, inputQuantityInput):
     global symbol
     global symbolPair
     global keyInput
     global limitPriceDifference
-    global margin
+    global leverage
     global inputQuantity
 
     symbol = symbolInput
     symbolPair = symbolPairInput
     keyInput = inputKeyInput
     limitPriceDifference = limitPriceDifferenceInput
-    margin = marginInput
+    leverage = leverageInput
     inputQuantity = inputQuantityInput
 
 
@@ -94,9 +94,9 @@ def setTotalPercentGain(totalPercentGainInput):
 def getTotalPercentGain():
     return total_percent_gained
 
-def getMargin():
-    return margin
+def getLeverage():
+    return leverage
 
-def setMargin(marginInput):
-    global margin
-    margin = marginInput
+def setLeverage(leverageInput):
+    global leverage
+    leverage = leverageInput

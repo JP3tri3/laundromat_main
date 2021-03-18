@@ -14,7 +14,7 @@ import asyncio
 
 async def main():
 
-    margin = 5
+    margin = 3
     symbolPair = 'BTCUSD'
     inputQuantity = 500
 

@@ -29,43 +29,44 @@ class Stop_Loss():
         flag = True
         level = self.api.getActivePositionEntryPrice()
         side = self.api.getPositionSide()
+        
+        #display counter
+        tempTime = 60
+        counter = 0
 
         while (flag == True):
+            time.sleep(1)
+            counter += 1
+            if (counter == tempTime):
+                counter = 0
+                print("Waiting - Update SL")
+                print("Percent Gained: " + str(self.calc.calcPercentGained()))
+                print("")
             if(comms.viewData('notice', 'active_position') == 'change'):
                 flag = False
             else:
                 if(self.orders.activePositionCheck() == 1):
-                    if(side == "Buy"):
+                    if(side == 'Buy'):
                         if(self.api.lastPrice() > level):
                             self.calculateStopLoss(slStrategy=slStrat)
                             level = stop_loss
-                            time.sleep(4)
-                        else:
-                            print("Waiting...")
-                            print("Percent Gained: " +
-                                str(self.calc.calcPercentGained()))
-                            print("Level: " + str(level))
-                            print("BTC Price: " + str(self.api.lastPrice()))
-                            print("")
-                            time.sleep(4)
-                    else:
+
+                    elif(side == 'Sell'):
                         if(self.api.lastPrice() < level):
                             self.calculateStopLoss(slStrategy=slStrat)
                             level = stop_loss
-                            time.sleep(4)
-                        else:
-                            print("Waiting...")
-                            print("Percent Gained: " +
+                    #display counter
+                    elif(counter == tempTime/6):
+                        print("Percent Gained: " +
                                 str(self.calc.calcPercentGained()))
-                            print("Level: " + str(level))
-                            print("Price: " + str(self.api.lastPrice()))
-                            print("")
-                            time.sleep(4)
+                        print("Level: " + str(level))
+                        print("BTC Price: " + str(self.api.lastPrice()))
+
                 else:
                     print("Position Closed")
                     print("")
                     flag = False
-            
+        
         comms.logClosingDetails()
 
 
@@ -75,12 +76,11 @@ class Stop_Loss():
         global percent_gained_lock
         global stop_loss
         side = self.api.getPositionSide()
+        percentGained = self.calc.calcPercentGained()
 
         if (slStrategy == 'raise_percentage'):
 
-            level = db.getLevel()
             pre_percent_level = percent_level
-            percentGained = self.calc.calcPercentGained()
             onePercentLessEntry = self.calc.calcOnePercentLessEntry()
             entry_price = self.api.getActivePositionEntryPrice()
 
@@ -115,6 +115,7 @@ class Stop_Loss():
                 db.setExitPrice(stop_loss)
                 db.setTotalPercentGain(total_percent_gained)
                 self.changeStopLoss(stop_loss)
+                db.setStopLoss(stop_loss)
                 print("Percent Gained: " + str(total_percent_gained))
                 print("Percent Level: " + str(percent_level))
                 print("Level: " + str(round(level, 2)))
@@ -133,11 +134,12 @@ class Stop_Loss():
 
             if(level != stop_loss):
                 level = stop_loss
+                print("level: " + str(level))
+                print("stop_loss: " + str(stop_loss))
                 self.changeStopLoss(stop_loss)
+                db.setStopLoss(stop_loss)
+                db.setTotalPercentGain(percentGained)
                 print("Stop Loss: " + str(stop_loss))
-
-            
-
 
         else:
             print('invalid strategy')

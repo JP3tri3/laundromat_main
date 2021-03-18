@@ -123,7 +123,15 @@ class Bybit_Api():
         order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), order_id=str(self.getOrderId()), p_r_price=str(price)).result()
         return order
 
+#Leverage
+ 
+    def getPositionLeverage(self):
+        position = self.getPositionResult()
+        return position['leverage']
 
+    def setLeverage(self):
+        setLeverage = self.client.Positions.Positions_saveLeverage(symbol=db.getSymbolPair(), leverage=str(db.getLeverage())).result()
+        return setLeverage    
 #stop_loss
 
     def changeStopLoss(self, slAmount):
@@ -132,7 +140,7 @@ class Bybit_Api():
 
 #Profit & Loss
     def closedProfitLoss(self):
-        records = self.client.Positions.Positions_closePnlRecords(symbol="BTCUSD").result()
+        records = self.client.Positions.Positions_closePnlRecords(symbol=db.getSymbolPair()).result()
         return records[0]['result']['data']
 
     def closedProfitLossQuantity(self, index):
@@ -143,6 +151,10 @@ class Bybit_Api():
         recordResult = self.closedProfitLoss()
         return recordResult[index]['closed_pnl']
 
-    def exitPriceProfitLoss(self, index):
+    def lastExitPrice(self, index):
         recordResult = self.closedProfitLoss()
-        return recordResult[0]['avg_exit_price']
+        return recordResult[index]['avg_exit_price']
+
+    def lastEntryPrice(self, index):
+        recordResult = self.closedProfitLoss()
+        return recordResult[index]['avg_entry_price']

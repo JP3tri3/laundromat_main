@@ -10,7 +10,7 @@ import database.database as db
 vwap1min = ""
 lastVwap = 0
 currentVwap = 0
-activeTrend = ""
+lastTrend = ""
 
 
 orders = Orders()
@@ -28,9 +28,8 @@ def determineVwapTrend():
     global lastVwap
     global currentVwap
     global vwapTrend
-    global activeTrend
-    trend = ""
-    activeTrend = comms.viewData('notice', 'new_trend')
+    global lastTrend
+    newTrend = ""
 
     lastCandleVwap = comms.viewData('1_min', 'last_candle_vwap')
 
@@ -39,46 +38,46 @@ def determineVwapTrend():
         print("")
         print("lastVwap: " + str(lastVwap))
         currentVwap = lastCandleVwap
-        print("urrent vwap: " + str(currentVwap))
+        print("current vwap: " + str(currentVwap))
 
         if(currentVwap > 0) and (lastVwap < 0):
-            trend = 'cross_up'
+            newTrend = 'cross_up'
         elif(currentVwap < 0) and (lastVwap > 0):
-            trend = 'cross_down'
+            newTrend = 'cross_down'
         elif(currentVwap > 0) and (lastVwap > 0):
-            trend = 'positive_vwap'
+            newTrend = 'positive_vwap'
         elif(currentVwap < 0) and (lastVwap < 0):
-            trend = 'negative_vwap'
+            newTrend = 'negative_vwap'
         else:
-            trend = 'not_enough_information'
+            newTrend = 'not_enough_information'
         
-        if (activeTrend == 'cross_up') and (trend == 'cross_down'):
+        if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
             comms.updateData('notice', 'active_position', 'change')
-            comms.updateData('notice', 'active_trend', trend)
+            if ((lastTrend == 'cross_up') and (newTrend == 'cross_down')) or ((lastTrend == 'cross_down') and (newTrend == 'cross_up')):
+                comms.updateData('notice', 'new_trend', newTrend)
 
-        elif (activeTrend == 'cross_down') and (trend == 'cross_up'):
-            comms.updateData('notice', 'active_position', 'change')
-            comms.updateData('notice', 'active_trend', trend)
-
-        print("activeTrend: " + str(activeTrend))
-        print("Trend: " + str(trend))
-        comms.updateData('notice', 'new_trend', trend)
-
+        print("lastTrend: " + str(lastTrend))
+        print("newTrend: " + str(newTrend))
+        comms.updateData('notice', 'new_trend', newTrend)
+        lastTrend = comms.viewData('notice', 'new_trend')
+        comms.updateData('notice', 'last_trend', lastTrend)
+        
 def vwapStrategy1Min():
     determineVwapTrend()
-    trend = comms.viewData('notice', 'new_trend')
+    newTrend = comms.viewData('notice', 'new_trend')
+    comms.updateData('notice', 'new_trend', 'null')
 
-    if (trend == 'cross_up'):
+    if (newTrend == 'cross_up'):
         if (orders.activePositionCheck() == 1):
             print("closing active Position")
             orders.closePositionMarket()
             comms.logClosingDetails()
-        comms.updateData('notice', 'active_position', 'null')      
+        comms.updateData('notice', 'active_position', 'null')    
         orders.createOrder(side='Buy', order_type='Market', stop_loss=100, inputQuantity=db.getInputQuantity())
         print("updating stop loss...")
         sl.updateStopLoss('candles')
 
-    elif (trend == 'cross_down'):
+    elif (newTrend == 'cross_down'):
         if (orders.activePositionCheck() == 1):
             print("closing active Position")
             orders.closePositionMarket()

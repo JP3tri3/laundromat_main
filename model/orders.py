@@ -107,6 +107,9 @@ class Orders():
                     entry_price = self.calc.calcLimitPriceDifference(side)
                     self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=db.getInputQuantity(), stop_loss=stop_loss, reduce_only=False)
                     
+                    db.setSide(side)
+                    db.setEntryPrice(self.api.getActivePositionEntryPrice)
+
                     if(order_type == 'Limit'):
                         print("")
                         print("Retrieving Order ID...")
@@ -162,7 +165,6 @@ class Orders():
             else:
                 print("Position Closed at: " + str(self.api.lastPrice()))
                 flag = False
-        comms.logClosingDetails()
 
     def forceLimitClose(self):
         flag = False

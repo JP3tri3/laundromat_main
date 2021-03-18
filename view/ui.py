@@ -16,8 +16,8 @@ class Ui:
         flag = True
 
         #manual Setters:
-        margin = 5
-        inputQuantity = 100 * margin
+        leverage = 5
+        inputQuantity = 100 * leverage
 
         while (flag == True):
             symbolPair = input("Enter Symbol: ").upper()
@@ -27,9 +27,9 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbolPair == "BTCUSD"):
-            db.setInitialValues('BTC', symbolPair, margin, 0, 0.50, inputQuantity)
+            db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity)
         elif (symbolPair == "ETHUSD"):
-            db.setInitialValues('ETH', symbolPair, margin, 1, 0.05, inputQuantity)
+            db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity)
 
         self.api = Bybit_Api()
         self.orders = Orders()
@@ -122,10 +122,13 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                comms.logClosingDetails()
+                print(self.calc.calcTotalCoin())
 
             elif(taskInput == "test1"):
-                print(self.api.closedProfitLossQuantity(0))
+                print(self.calc.calcTotalGain())
+
+            elif(taskInput == "test2"):
+                print(self.api.closedProfitLoss())
 
             elif(taskInput == "change"):
                 flag = False
@@ -150,3 +153,4 @@ class Ui:
         print("Shutting down...")
         sys.exit("Program Terminated")
         print("")
+

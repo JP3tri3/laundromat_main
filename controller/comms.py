@@ -24,7 +24,6 @@ def updateData(name, key, value):
     access_file = open("data.json", "w")
     json.dump(json_object, access_file, indent=4)
     access_file.close()
-    print("Json Updated")
 
 def updateDisplayData(key, value):
     access_file = open("data.json", "r")
@@ -68,13 +67,17 @@ def logClosingDetails():
     global total_profit_loss
     global total_number_trades
 
-    entry_price = db.getEntryPrice()
-    exit_price = db.getExitPrice()
+    entry_price = calc.calcEntryPrice()
+    exit_price = calc.calcExitPrice()
     percent_gain = db.getTotalPercentGain()
     stop_loss = db.getStopLoss()
     side = db.getSide()
     total_percent_gained = db.getTotalPercentGain()
     total_gain = calc.calcTotalGain()
+    total_coin = calc.calcTotalCoin()
+
+    total_number_trades += 1
+    total_profit_loss += total_gain 
 
     f = open("logs.txt", "a")
     f.write(str(datetime.datetime.now()) + "\n")
@@ -83,7 +86,10 @@ def logClosingDetails():
     f.write("Exit Price: " + str(exit_price) + "\n")
     f.write("Percent Gain: " + str(total_percent_gained) + "\n")
     f.write("SL: " + str(stop_loss) + "\n")
-    f.write("Total Gain: " + str(total_gain) + "\n")
+    f.write("$ Gain: " + str(total_gain) + "\n")
+    f.write("Coin Gain: " + str(total_coin) + "\n")
+    f.write("#Trades: " + str(total_number_trades) + "\n")
+    f.write("Running Total: " + str(total_profit_loss) + "\n")
     f.write("\n")
     f.close()
     print("Logged Closing Details")
