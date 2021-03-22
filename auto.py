@@ -27,10 +27,6 @@ async def main():
         db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, data_name)
 
 
-
-    orders = Orders()
-    sl = Stop_Loss()
-    api = Bybit_Api()
     strat = Strategy(vwapMarginNeg, vwapMarginPos, data_name)
 
     #input true to clear
@@ -48,10 +44,8 @@ async def main():
             print("waiting on input...")
             comms.timeStamp()
             temp = 0
-        if(strat.vwapCrossStrategy() == 1):
-            print("update SL")
-        else:
-            print(0)
+        strat.vwapCrossStrategy()
+
 
 
         

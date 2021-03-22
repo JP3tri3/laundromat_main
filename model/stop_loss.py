@@ -23,49 +23,16 @@ class Stop_Loss():
         print("Changed stop Loss to: " + str(slAmount))
 
     def updateStopLoss(self, slStrat):
-        flag = True
         level = self.api.getActivePositionEntryPrice()
         side = self.api.getPositionSide()
         
-        #display counter
-        tempTime = 60
-        counter = 0
+        if(side == 'Buy'):
+            if(self.api.lastPrice() > level):
+                self.calculateStopLoss(slStrategy=slStrat)
 
-        while (flag == True):
-            time.sleep(1)
-            counter += 1
-            if (counter == tempTime):
-                counter = 0
-                print("Waiting - Update SL")
-                print("Percent Gained: " + str(self.calc.calcPercentGained()))
-                print("")
-            if(comms.viewData(db.getDataName(), 'active_position') == 'change'):
-                flag = False
-            else:
-                if(self.orders.activePositionCheck() == 1):
-                    if(side == 'Buy'):
-                        if(self.api.lastPrice() > level):
-                            self.calculateStopLoss(slStrategy=slStrat)
-                            level = stop_loss
-
-                    elif(side == 'Sell'):
-                        if(self.api.lastPrice() < level):
-                            self.calculateStopLoss(slStrategy=slStrat)
-                            level = stop_loss
-                    #display counter
-                    elif(counter == tempTime/6):
-                        print("Percent Gained: " +
-                                str(self.calc.calcPercentGained()))
-                        print("Level: " + str(level))
-                        print("BTC Price: " + str(self.api.lastPrice()))
-
-                else:
-                    print("Position Closed")
-                    print("")
-                    flag = False
-        
-        comms.logClosingDetails()
-
+        elif(side == 'Sell'):
+            if(self.api.lastPrice() < level):
+                self.calculateStopLoss(slStrategy=slStrat)
 
     def calculateStopLoss(self, slStrategy):
         global level
@@ -121,22 +88,19 @@ class Stop_Loss():
                 pre_percent_level = percent_level
 
         elif (slStrategy == 'candles'):
-            lastCandleHigh = comms.viewData('1_min', 'last_candle_high')
-            lastCandleLow = comms.viewData('1_min', 'last_candle_low')
+            lastCandleHigh = comms.viewData(db.getDataName(), 'last_candle_high')
+            lastCandleLow = comms.viewData(db.getDataName(), 'last_candle_low')
 
-            if(side == 'Buy'):
-                stop_loss = lastCandleLow - 20
-            else:
-                stop_loss = lastCandleHigh + 20
+            stop_loss = lastCandleLow - (2.0 * self.calc.calcOnePercent()) if(side == 'Buy') \
+                else lastCandleHigh + (2.0 * self.calc.calcOnePercent())
 
             if(level != stop_loss):
-                level = stop_loss
-                print("level: " + str(level))
-                print("stop_loss: " + str(stop_loss))
+                level = stop_loss    
                 self.changeStopLoss(stop_loss)
                 db.setStopLoss(stop_loss)
                 db.setTotalPercentGain(percentGained)
-                print("Stop Loss: " + str(stop_loss))
+                print("level: " + str(level))
+                print("stop_loss: " + str(stop_loss))
 
         else:
             print('invalid strategy')

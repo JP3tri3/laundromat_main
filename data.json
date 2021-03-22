@@ -4,12 +4,14 @@
         "3min": false
     },
     "1_min": {
-        "last_candle_high": 59800,
-        "last_candle_low": 55000,
-        "last_candle_vwap": 10.8,
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0,
+        "wt1": 0,
+        "wt2": 0,
         "active_position": "null",
         "new_trend": "null",
-        "last_trend": "cross_up",
+        "last_trend": "null",
         "active_trend": "null"
     },
     "9_min": {

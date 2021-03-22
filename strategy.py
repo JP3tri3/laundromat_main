@@ -3,12 +3,18 @@ sys.path.append("..")
 # import asyncio
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
+from model.calc import Calc
+from api.bybit_api import Bybit_Api
 import controller.comms as comms
 import database.database as db
-
-
+import time
 
 class Strategy():
+
+    orders = Orders()
+    sl = Stop_Loss()
+    calc = Calc()
+    api = Bybit_Api()
 
     def __init__(self, vwapMarginNegInput, vwapMarginPosInput, dataNameInput):
         global vwapMarginNeg
@@ -17,18 +23,15 @@ class Strategy():
         global lastVwap
         global currentVwap
         global lastTrend
-        global orders
-        global sl
 
         vwapMarginNeg = vwapMarginNegInput
         vwapMarginPos = vwapMarginPosInput
         data_name = dataNameInput
-        lastVwap = 0
-        currentVwap = 0
+        lastVwap = 0.0
+        currentVwap = 0.0
         lastTrend = ""
-
-        orders = Orders()
-        sl = Stop_Loss()
+        lastCandleWt1 = 0.0
+        lastCandleWt2 = 0.0
 
     #single
     def determineVwapTrend(self):
@@ -36,9 +39,11 @@ class Strategy():
         global currentVwap
         global vwapTrend
         global lastTrend
+
         newTrend = ""
         
         lastCandleVwap = comms.viewData(data_name, 'last_candle_vwap')
+
 
         if (lastCandleVwap != currentVwap):
             lastVwap = currentVwap
@@ -70,34 +75,65 @@ class Strategy():
             comms.updateData(data_name, 'last_trend', lastTrend)
             
     def vwapCrossStrategy(self):
+        initial_stop_loss = 0
         self.determineVwapTrend()
         newTrend = comms.viewData(data_name, 'new_trend')
         comms.updateData(data_name, 'new_trend', 'null')
+        lastCandleWt1 = comms.viewData(data_name, 'wt1')
+        lastCandleWt2 = comms.viewData(data_name, 'wt2')
 
-        if (newTrend == 'cross_up'):
-            if (orders.activePositionCheck() == 1):
+        if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
+            if (self.orders.activePositionCheck() == 1):
                 print("closing active Position")
-                orders.closePositionMarket()
+                self.orders.closePositionMarket()
                 comms.logClosingDetails()
-            comms.updateData(data_name, 'active_position', 'null')    
-            orders.createOrder(side='Buy', order_type='Market', inputQuantity=db.getInputQuantity())
-            # print("updating stop loss...")
-            # sl.updateStopLoss('candles')
-            return 1
 
-        elif (newTrend == 'cross_down'):
-            if (orders.activePositionCheck() == 1):
-                print("closing active Position")
-                orders.closePositionMarket()
+            if ((newTrend == 'cross_up') and (lastCandleWt1 > 0) and (lastCandleWt2 > 0)) or (newTrend == 'cross_down') and (lastCandleWt1 < 0) and (lastCandleWt2 < 0):
+                if (newTrend == 'cross_up'):
+                    print("Opening new Long:")
+                    self.orders.createOrder(side='Buy', order_type='Market', inputQuantity=db.getInputQuantity())
+
+                elif (newTrend == 'cross_down'):
+                    print("Opening new Short:")
+                    self.orders.createOrder(side='Sell', order_type='Market', inputQuantity=db.getInputQuantity())
+
+                #process Stop Loss:
+                print("Checking for stop loss...")
+                flag = True
+                counter = 0
+                tempTime = 60
+
+                while (flag == True):
+                    counter += 1
+
+                    #display counter
+                    if (counter == tempTime):
+                        counter = 0
+                        print("Waiting - Update SL")
+                        print("Percent Gained: " + str(self.calc.calcPercentGained()))
+                        print("")
+
+                    elif(counter == tempTime/6):
+                            print("Percent Gained: " +
+                                        str(self.calc.calcPercentGained()))
+                            print("Last Price: " + str(self.api.lastPrice()))
+
+                    elif(comms.viewData(db.getDataName(), 'active_position') == 'change'):
+                        flag = False
+
+                    #process SL if position is active
+                    else:
+                        if(self.orders.activePositionCheck() == 1):
+                            self.sl.updateStopLoss('candles')
+                            time.sleep(1)
+                        else:
+                            print("Position Closed")
+                            print("")
+                            comms.logClosingDetails()
+                            flag = False
+
             comms.updateData(data_name, 'active_position', 'null')
-            orders.createOrder(side='Sell', order_type='Market', inputQuantity=db.getInputQuantity())
-            # print("updating stop loss...")
-            # sl.updateStopLoss('candles')
-            return 1
-        
-        else:
-            return 0
+                  
 
 
-#multiple TFs
-
+#check for order of lastTrend verse newTrend

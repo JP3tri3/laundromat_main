@@ -97,11 +97,9 @@ class Orders():
             print("Current Active Position...")
             print("Create Order Cancelled")
         else:
-            # stop_loss = (self.api.lastPrice() - stop_loss) if (side == 'Buy') \
-            #     else (self.api.lastPrice() + stop_loss)
-            initialStopLoss = comms.viewData('1_min', 'last_candle_low')-100 if (side == 'Buy') \
-                else (comms.viewData('1_min', 'last_candle_high') +100)
-            print("TEST StopLoss = " + str(initialStopLoss))
+
+            initialStopLoss = (self.api.lastPrice() - 300) if (side == 'Buy') \
+                else (self.api.lastPrice() + 300)
 
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):

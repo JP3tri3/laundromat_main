@@ -4,7 +4,7 @@ import database.database as db
 import config
 import bybit
 
-
+pairSymbol = ''
 
 class Bybit_Api():
 
@@ -14,6 +14,9 @@ class Bybit_Api():
     # def __init__(self):
     #     return
 
+    global pairSymbol
+
+    pairSymbol = str(db.getSymbolPair())
 
     def getKeyInput(self):
         return db.getKeyInput()

@@ -49,14 +49,18 @@ def updateDataPersistent(data):
         lastCandleHigh = data['last_candle_high']
         lastCandleLow = data['last_candle_low']
         lastCandleVwap = data['last_candle_vwap']
+        wt1 = data['wt1']
+        wt2 = data['wt2']
         codeRedNotice = data['code_red']
 
         updateData(inputName, 'last_candle_high', lastCandleHigh)
         updateData(inputName, 'last_candle_low', lastCandleLow)
         updateData(inputName, 'last_candle_vwap', lastCandleVwap)
+
+        updateData(inputName, 'wt1', wt1)
+        updateData(inputName, 'wt2', wt2)
+
         updateData('notice', 'code_red', codeRedNotice)
-
-
 
 def updateDataOnAlert(data):
         inputName = data['name']
@@ -113,6 +117,11 @@ def clearJson(flag, dataNameInput):
         updateData(dataNameInput, 'active_position', 'null')
         updateData(dataNameInput, 'new_trend', 'null')
         updateData(dataNameInput, 'active_trend', 'null')
+        updateData(dataNameInput, 'last_trend', 'null')
+
+        updateData(dataNameInput, 'wt1', 0)
+        updateData(dataNameInput, 'wt2', 0)
+
 
 def clearLogs(flag):
     if(flag == True):

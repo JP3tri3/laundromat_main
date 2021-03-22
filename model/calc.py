@@ -114,7 +114,12 @@ class Calc():
         leverage = db.getLeverage()
         entry_price = self.api.getActivePositionEntryPrice()
         return(float(entry_price) * 0.01) / leverage
-         
+
+    def calcOnePercent(self):
+        leverage = db.getLeverage()
+        last_price = self.api.lastPrice()
+        return(float(last_price) * 0.01) / leverage        
+           
     def calcPercentGained(self):
         try:
             side = self.api.getPositionSide()
