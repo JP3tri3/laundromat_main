@@ -81,7 +81,7 @@ class Orders():
             else:
                 flag = True
 
-    def createOrder(self, side, order_type, stop_loss, inputQuantity):
+    def createOrder(self, side, order_type, inputQuantity):
         global level
         global percentLevel
         global percentGainedLock
@@ -97,15 +97,17 @@ class Orders():
             print("Current Active Position...")
             print("Create Order Cancelled")
         else:
-            stop_loss = (self.api.lastPrice() - stop_loss) if (side == 'Buy') \
-                else (self.api.lastPrice() + stop_loss)
-            print("TEST StopLoss = " + str(stop_loss))
+            # stop_loss = (self.api.lastPrice() - stop_loss) if (side == 'Buy') \
+            #     else (self.api.lastPrice() + stop_loss)
+            initialStopLoss = comms.viewData('1_min', 'last_candle_low')-100 if (side == 'Buy') \
+                else (comms.viewData('1_min', 'last_candle_high') +100)
+            print("TEST StopLoss = " + str(initialStopLoss))
 
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")
                     entry_price = self.calc.calcLimitPriceDifference(side)
-                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=db.getInputQuantity(), stop_loss=stop_loss, reduce_only=False)
+                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=db.getInputQuantity(), stop_loss=initialStopLoss, reduce_only=False)
                     
                     db.setSide(side)
                     db.setEntryPrice(self.api.getActivePositionEntryPrice)
@@ -126,7 +128,7 @@ class Orders():
                         print("")
                         print("Order Successful")
                         print("Entry Price: " + str(entry_price))
-                        print("Initial Stop Loss: " + str(stop_loss))
+                        print("Initial Stop Loss: " + str(initialStopLoss))
                         print("")
                         flag = True
 

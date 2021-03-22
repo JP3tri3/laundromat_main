@@ -37,7 +37,7 @@ def updateDisplayData(key, value):
     access_file.close()
 
 def viewData(name, key):
-    output = ''
+    # output = ''
     with open('data.json') as f:
         data = json.load(f)
         f.close()
@@ -45,6 +45,7 @@ def viewData(name, key):
 
 def updateDataPersistent(data):
         inputName = data['input_name']
+
         lastCandleHigh = data['last_candle_high']
         lastCandleLow = data['last_candle_low']
         lastCandleVwap = data['last_candle_vwap']
@@ -54,6 +55,8 @@ def updateDataPersistent(data):
         updateData(inputName, 'last_candle_low', lastCandleLow)
         updateData(inputName, 'last_candle_vwap', lastCandleVwap)
         updateData('notice', 'code_red', codeRedNotice)
+
+
 
 def updateDataOnAlert(data):
         inputName = data['name']
@@ -94,25 +97,22 @@ def logClosingDetails():
     f.close()
     print("Logged Closing Details")
 
-    total_number_trades += 1
-    total_profit_loss += total_gain 
-
     updateDisplayData('mainTest_number_Of_trades', total_number_trades)
     updateDisplayData('mainTest_profit_loss', round(total_profit_loss, 4))
 
-def clearDisplay(flag):
+def clearJson(flag, dataNameInput):
     if(flag == True):
         updateDisplayData('mainTest_number_Of_trades', 0)
         updateDisplayData('mainTest_profit_loss', 0)
         print("Display Cleared")
 
-        updateData('1_min', 'last_candle_high', 0)
-        updateData('1_min', 'last_candle_low', 0)
-        updateData('1_min', 'last_candle_vwap', 0)
+        updateData(dataNameInput, 'last_candle_high', 0)
+        updateData(dataNameInput, 'last_candle_low', 0)
+        updateData(dataNameInput, 'last_candle_vwap', 0)
 
-        updateData('notice', 'active_position', 'null')
-        updateData('notice', 'new_trend', 'null')
-        updateData('notice', 'active_trend', 'null')
+        updateData(dataNameInput, 'active_position', 'null')
+        updateData(dataNameInput, 'new_trend', 'null')
+        updateData(dataNameInput, 'active_trend', 'null')
 
 def clearLogs(flag):
     if(flag == True):

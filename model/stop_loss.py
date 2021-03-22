@@ -13,9 +13,6 @@ stop_loss = 0
 
 class Stop_Loss():
 
-    # def __init__(self):
-    #     retrun
-
     api = Bybit_Api()
     calc = Calc()
     orders = Orders()
@@ -42,7 +39,7 @@ class Stop_Loss():
                 print("Waiting - Update SL")
                 print("Percent Gained: " + str(self.calc.calcPercentGained()))
                 print("")
-            if(comms.viewData('notice', 'active_position') == 'change'):
+            if(comms.viewData(db.getDataName(), 'active_position') == 'change'):
                 flag = False
             else:
                 if(self.orders.activePositionCheck() == 1):

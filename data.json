@@ -4,46 +4,43 @@
         "3min": false
     },
     "1_min": {
-        "last_candle_high": 59102,
-        "last_candle_low": 59045.398271352155,
-        "last_candle_vwap": -3.906770675015629
-    },
-    "3_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "6_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "12_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "24_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "2_hr": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "4_hr": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0
-    },
-    "notice": {
-        "code_red": "False",
+        "last_candle_high": 59800,
+        "last_candle_low": 55000,
+        "last_candle_vwap": 10.8,
         "active_position": "null",
         "new_trend": "null",
-        "last_trend": "negative_vwap",
+        "last_trend": "cross_up",
         "active_trend": "null"
+    },
+    "9_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0,
+        "active_position": "null",
+        "new_trend": "null",
+        "last_trend": "null",
+        "active_trend": "null"
+    },
+    "16_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0,
+        "active_position": "null",
+        "new_trend": "null",
+        "last_trend": "null",
+        "active_trend": "null"
+    },
+    "30_min": {
+        "last_candle_high": 0,
+        "last_candle_low": 0,
+        "last_candle_vwap": 0,
+        "active_position": "null",
+        "new_trend": "null",
+        "last_trend": "null",
+        "active_trend": "null"
+    },
+    "notice": {
+        "code_red": "False"
     },
     "mainTest_table_name": "Main",
     "mainTest_number_Of_trades": 0,

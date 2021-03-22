@@ -18,6 +18,7 @@ class Ui:
         #manual Setters:
         leverage = 5
         inputQuantity = 100 * leverage
+        data_name = ''
 
         while (flag == True):
             symbolPair = input("Enter Symbol: ").upper()
@@ -27,9 +28,9 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbolPair == "BTCUSD"):
-            db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity)
+            db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, data_name)
         elif (symbolPair == "ETHUSD"):
-            db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity)
+            db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, data_name)
 
         self.api = Bybit_Api()
         self.orders = Orders()
@@ -83,19 +84,19 @@ class Ui:
                 self.api.priceInfo()
 
             elif(taskInput == "info"):
-                self.api.symbolInfoResult()
+                print(self.api.symbolInfoResult())
 
             elif(taskInput == "long"):
-                self.orders.createOrder("Buy", 'Limit', 100, db.getInputQuantity())
+                self.orders.createOrder("Buy", 'Limit', db.getInputQuantity())
 
             elif(taskInput == "short"):
-                self.orders.createOrder("Sell", 'Limit', 100, db.getInputQuantity())
+                self.orders.createOrder("Sell", 'Limit', db.getInputQuantity())
 
             elif(taskInput == "long market"):
-                self.orders.createOrder('Buy', 'Market', 100, db.getInputQuantity())
+                self.orders.createOrder('Buy', 'Market', db.getInputQuantity())
 
             elif(taskInput == "short market"):
-                self.orders.createOrder("Sell", 'Market', 100, db.getInputQuantity())
+                self.orders.createOrder("Sell", 'Market', db.getInputQuantity())
 
             elif(taskInput == "wallet"):
                 self.api.myWallet()
@@ -122,10 +123,10 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                print(self.calc.calcTotalCoin())
+                print(self.api.getSymbolPair())
 
             elif(taskInput == "test1"):
-                print(self.calc.calcTotalGain())
+                print(self.api.lastPrice())
 
             elif(taskInput == "test2"):
                 print(self.api.closedProfitLoss())

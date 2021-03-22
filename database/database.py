@@ -16,14 +16,16 @@ stop_loss = None
 exit_price = None
 side = None
 total_percent_gained = 0
+data_name = ''
 
-def setInitialValues(symbolInput, symbolPairInput, leverageInput, inputKeyInput, limitPriceDifferenceInput, inputQuantityInput):
+def setInitialValues(symbolInput, symbolPairInput, leverageInput, inputKeyInput, limitPriceDifferenceInput, inputQuantityInput, dataNameInput):
     global symbol
     global symbolPair
     global keyInput
     global limitPriceDifference
     global leverage
     global inputQuantity
+    global data_name
 
     symbol = symbolInput
     symbolPair = symbolPairInput
@@ -31,6 +33,7 @@ def setInitialValues(symbolInput, symbolPairInput, leverageInput, inputKeyInput,
     limitPriceDifference = limitPriceDifferenceInput
     leverage = leverageInput
     inputQuantity = inputQuantityInput
+    data_name = dataNameInput
 
 
 def getSymbol():
@@ -100,3 +103,6 @@ def getLeverage():
 def setLeverage(leverageInput):
     global leverage
     leverage = leverageInput
+
+def getDataName():
+    return data_name

@@ -11,7 +11,7 @@ from sanic import response
 from sanic.request import Request
 from sanic.response import json
 from sanic_jinja2 import SanicJinja2
-import strategy as strat
+from strategy import Strategy
 
 app = Sanic(__name__)
 jinja = SanicJinja2(app, pkg_name="listener")
@@ -19,6 +19,11 @@ jinja = SanicJinja2(app, pkg_name="listener")
 myTime = int(time.time() * 1000)
 trendFlag = False
 
+data_name = '1_min'
+vwapMarginNeg = -10.5
+vwapMarginPos = 10.5
+
+strat = Strategy(vwapMarginNeg, vwapMarginPos, data_name)
 
 @app.route('/')
 async def index(request):
