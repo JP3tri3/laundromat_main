@@ -43,7 +43,7 @@ class Strategy():
         newTrend = ""
         
         lastCandleVwap = comms.viewData(data_name, 'last_candle_vwap')
-
+        activeTrend = comms.viewData(data_name, 'active_trend')
 
         if (lastCandleVwap != currentVwap):
             lastVwap = currentVwap
@@ -64,7 +64,8 @@ class Strategy():
                 newTrend = 'not_enough_information'
             
             if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
-                comms.updateData(data_name, 'active_position', 'change')
+                if (activeTrend != 'null') and (activeTrend != newTrend):
+                    comms.updateData(data_name, 'active_position', 'change')
                 if ((lastTrend == 'cross_up') and (newTrend == 'cross_down')) or ((lastTrend == 'cross_down') and (newTrend == 'cross_up')):
                     comms.updateData(data_name, 'new_trend', newTrend)
 
@@ -81,58 +82,62 @@ class Strategy():
         comms.updateData(data_name, 'new_trend', 'null')
         lastCandleWt1 = comms.viewData(data_name, 'wt1')
         lastCandleWt2 = comms.viewData(data_name, 'wt2')
+        active_trend = comms.viewData(data_name, 'active_trend')
 
-        if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
-            if (self.orders.activePositionCheck() == 1):
-                print("closing active Position")
-                self.orders.closePositionMarket()
-                comms.logClosingDetails()
+        if (newTrend != 'null') and (newTrend != active_trend):
+            if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
+                if (self.orders.activePositionCheck() == 1):
+                    print("closing active Position")
+                    self.orders.closePositionMarket()
+                    comms.logClosingDetails()
 
-            if ((newTrend == 'cross_up') and (lastCandleWt1 > 0) and (lastCandleWt2 > 0)) or (newTrend == 'cross_down') and (lastCandleWt1 < 0) and (lastCandleWt2 < 0):
-                if (newTrend == 'cross_up'):
-                    print("Opening new Long:")
-                    self.orders.createOrder(side='Buy', order_type='Market', inputQuantity=db.getInputQuantity())
+                if ((newTrend == 'cross_up') and (lastCandleWt1 < 5) and (lastCandleWt2 < 5)) or (newTrend == 'cross_down') and (lastCandleWt1 > -5) and (lastCandleWt2 > -5):
+                    if (newTrend == 'cross_up'):
+                        print("Opening new Long:")
+                        self.orders.createOrder(side='Buy', order_type='Market', inputQuantity=db.getInputQuantity())
 
-                elif (newTrend == 'cross_down'):
-                    print("Opening new Short:")
-                    self.orders.createOrder(side='Sell', order_type='Market', inputQuantity=db.getInputQuantity())
+                    elif (newTrend == 'cross_down'):
+                        print("Opening new Short:")
+                        self.orders.createOrder(side='Sell', order_type='Market', inputQuantity=db.getInputQuantity())
 
-                #process Stop Loss:
-                print("Checking for stop loss...")
-                flag = True
-                counter = 0
-                tempTime = 60
+                    comms.updateData(data_name, 'active_trend', newTrend)
+                    comms.updateData(data_name, 'active_position', 'null')
+                    #process Stop Loss:
+                    print("Checking for stop loss...")
+                    flag = True
+                    counter = 0
+                    tempTime = 60
 
-                while (flag == True):
-                    counter += 1
-
-                    #display counter
-                    if (counter == tempTime):
-                        counter = 0
-                        print("Waiting - Update SL")
-                        print("Percent Gained: " + str(self.calc.calcPercentGained()))
-                        print("")
-
-                    elif(counter == tempTime/6):
-                            print("Percent Gained: " +
-                                        str(self.calc.calcPercentGained()))
-                            print("Last Price: " + str(self.api.lastPrice()))
-
-                    elif(comms.viewData(db.getDataName(), 'active_position') == 'change'):
-                        flag = False
-
-                    #process SL if position is active
-                    else:
-                        if(self.orders.activePositionCheck() == 1):
-                            self.sl.updateStopLoss('candles')
-                            time.sleep(1)
-                        else:
-                            print("Position Closed")
+                    while (flag == True):
+                        counter += 1
+                        #display counter
+                        if (counter == tempTime):
+                            counter = 0
+                            print("Waiting - Update SL")
+                            print("Percent Gained: " + str(self.calc.calcPercentGained()))
                             print("")
-                            comms.logClosingDetails()
+
+                        elif(counter == tempTime/6):
+                                print("Percent Gained: " +
+                                            str(self.calc.calcPercentGained()))
+                                print("Last Price: " + str(self.api.lastPrice()))
+
+                        elif(comms.viewData(db.getDataName(), 'active_position') == 'change'):
                             flag = False
 
-            comms.updateData(data_name, 'active_position', 'null')
+                        #process SL if position is active
+                        else:
+                            if(self.orders.activePositionCheck() == 1):
+                                self.sl.updateStopLoss('candles')
+                                time.sleep(1)
+                            else:
+                                print("Position Closed")
+                                print("")
+                                comms.updateData(data_name, 'active_trend', 'null')
+                                comms.logClosingDetails()
+                                flag = False
+
+                
                   
 
 

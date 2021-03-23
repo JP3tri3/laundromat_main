@@ -17,9 +17,9 @@ async def main():
     leverage = 5
     symbolPair = 'BTCUSD'
     inputQuantity = 500
-    data_name = '1_min'
-    vwapMarginNeg = -10.5
-    vwapMarginPos = 10.5
+    data_name = '16_min'
+    vwapMarginNeg = -8
+    vwapMarginPos = 8
 
     if (symbolPair == "BTCUSD"):
         db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, data_name)

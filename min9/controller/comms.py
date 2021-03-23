@@ -19,13 +19,13 @@ def updateData(nameInput, keyInput, valueInput):
     key = keyInput
     value = valueInput
     try:
-        access_file = open("data.json", "r")
+        access_file = open(r"C:\Users\Plan3t\Documents\Bots\Laundromat_main\data.json", "r")
         json_object = json.load(access_file)
         access_file.close()
 
         json_object[name][key] = value
 
-        access_file = open("data.json", "w")
+        access_file = open(r"C:\Users\Plan3t\Documents\Bots\Laundromat_main\data.json", "w")
         json.dump(json_object, access_file, indent=4)
         access_file.close()
     except Exception as e:
@@ -33,13 +33,13 @@ def updateData(nameInput, keyInput, valueInput):
         updateData(name, key, value)
 
 def updateDisplayData(key, value):
-    access_file = open("data.json", "r")
+    access_file = open(r"C:\Users\Plan3t\Documents\Bots\Laundromat_main\data.json", "r")
     json_object = json.load(access_file)
     access_file.close()
 
     json_object[key] = value
 
-    access_file = open("data.json", "w")
+    access_file = open(r"C:\Users\Plan3t\Documents\Bots\Laundromat_main\data.json", "w")
     json.dump(json_object, access_file, indent=4)
     access_file.close()
 
@@ -48,7 +48,7 @@ def viewData(nameInput, keyInput):
     key = keyInput
 
     try:
-        with open('data.json') as f:
+        with open(r'C:\Users\Plan3t\Documents\Bots\Laundromat_main\data.json') as f:
             data = json.load(f)
             f.close()
         return data[name][key]
@@ -114,13 +114,13 @@ def logClosingDetails():
     f.close()
     print("Logged Closing Details")
 
-    updateDisplayData('mainTest_number_Of_trades', total_number_trades)
-    updateDisplayData('mainTest_profit_loss', round(total_profit_loss, 4))
+    updateDisplayData('test1_number_Of_trades', total_number_trades)
+    updateDisplayData('test1_profit_loss', round(total_profit_loss, 4))
 
 def clearJson(flag, dataNameInput):
     if(flag == True):
-        updateDisplayData('mainTest_number_Of_trades', 0)
-        updateDisplayData('mainTest_profit_loss', 0)
+        updateDisplayData('test1_number_Of_trades', 0)
+        updateDisplayData('test1_profit_loss', 0)
         print("Display Cleared")
 
         updateData(dataNameInput, 'last_candle_high', 0)

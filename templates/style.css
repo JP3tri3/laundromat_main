@@ -7,4 +7,18 @@ table, th, td {
     margin: 0 auto;
     background: lightgray;
     text-align: center;
-}
+    color: black;
+  }
+
+  body {
+    background-color: black;
+  }
+
+  div {
+    color: white;
+  }
+
+  table, th, td {
+    color: white;
+    border: 1px solid gray;
+  }

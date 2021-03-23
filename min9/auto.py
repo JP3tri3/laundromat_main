@@ -17,7 +17,7 @@ async def main():
     leverage = 5
     symbolPair = 'BTCUSD'
     inputQuantity = 500
-    data_name = '1_min'
+    data_name = '9_min'
     vwapMarginNeg = -10.5
     vwapMarginPos = 10.5
 

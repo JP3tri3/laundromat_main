@@ -15,36 +15,51 @@
         "active_trend": "null"
     },
     "9_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0,
+        "last_candle_high": 54615.5,
+        "last_candle_low": 54539.072287924886,
+        "last_candle_vwap": 0.7466190863845839,
         "active_position": "null",
         "new_trend": "null",
-        "last_trend": "null",
-        "active_trend": "null"
+        "last_trend": "not_enough_information",
+        "active_trend": "null",
+        "wt1": -36.17443094464434,
+        "wt2": -36.921050031028926
     },
     "16_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0,
+        "last_candle_high": 54675.5,
+        "last_candle_low": 54593.838234148774,
+        "last_candle_vwap": -2.1650778802583677,
         "active_position": "null",
         "new_trend": "null",
-        "last_trend": "null",
-        "active_trend": "null"
+        "last_trend": "negative_vwap",
+        "active_trend": "null",
+        "wt1": -17.114673735990923,
+        "wt2": -14.949595855732555
     },
     "30_min": {
-        "last_candle_high": 0,
-        "last_candle_low": 0,
-        "last_candle_vwap": 0,
+        "last_candle_high": 54675.5,
+        "last_candle_low": 54664.44535330726,
+        "last_candle_vwap": 0.5931346871906342,
         "active_position": "null",
         "new_trend": "null",
-        "last_trend": "null",
-        "active_trend": "null"
+        "last_trend": "not_enough_information",
+        "active_trend": "null",
+        "wt1": -28.667170958024553,
+        "wt2": -29.260305645215187
     },
     "notice": {
         "code_red": "False"
     },
     "mainTest_table_name": "Main",
     "mainTest_number_Of_trades": 0,
-    "mainTest_profit_loss": 0
+    "mainTest_profit_loss": 0,
+    "test1_table_name": "9_min",
+    "test1_number_Of_trades": 0,
+    "test1_profit_loss": 0,
+    "test2_table_name": "16_min",
+    "test2_number_Of_trades": 0,
+    "test2_profit_loss": 0,
+    "test3_table_name": "30_min",
+    "test3_number_Of_trades": 0,
+    "test3_profit_loss": 0
 }

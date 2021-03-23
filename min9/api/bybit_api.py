@@ -11,9 +11,6 @@ class Bybit_Api():
     client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
                          api_secret=config.BYBIT_TESTNET_API_SECRET)
 
-    # def __init__(self):
-    #     return
-
     global pairSymbol
 
     pairSymbol = str(db.getSymbolPair())

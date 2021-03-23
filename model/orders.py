@@ -98,9 +98,9 @@ class Orders():
             print("Create Order Cancelled")
         else:
 
-            initialStopLoss = (self.api.lastPrice() - 300) if (side == 'Buy') \
-                else (self.api.lastPrice() + 300)
-
+            initialStopLoss = (self.api.lastPrice() - (2*self.calc.calcOnePercent())) if (side == 'Buy') \
+                else (self.api.lastPrice() + (2*self.calc.calcOnePercent()))
+            print("onePercentCheck: " + str(self.calc.calcOnePercent()))
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")

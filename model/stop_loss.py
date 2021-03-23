@@ -23,15 +23,13 @@ class Stop_Loss():
         print("Changed stop Loss to: " + str(slAmount))
 
     def updateStopLoss(self, slStrat):
-        level = self.api.getActivePositionEntryPrice()
         side = self.api.getPositionSide()
-        
         if(side == 'Buy'):
             if(self.api.lastPrice() > level):
                 self.calculateStopLoss(slStrategy=slStrat)
 
         elif(side == 'Sell'):
-            if(self.api.lastPrice() < level):
+            if(level == 0) or (self.api.lastPrice() < level):
                 self.calculateStopLoss(slStrategy=slStrat)
 
     def calculateStopLoss(self, slStrategy):
@@ -88,19 +86,41 @@ class Stop_Loss():
                 pre_percent_level = percent_level
 
         elif (slStrategy == 'candles'):
+            print("Calculating stop loss in slStrategy")
             lastCandleHigh = comms.viewData(db.getDataName(), 'last_candle_high')
             lastCandleLow = comms.viewData(db.getDataName(), 'last_candle_low')
 
-            stop_loss = lastCandleLow - (2.0 * self.calc.calcOnePercent()) if(side == 'Buy') \
-                else lastCandleHigh + (2.0 * self.calc.calcOnePercent())
 
-            if(level != stop_loss):
-                level = stop_loss    
-                self.changeStopLoss(stop_loss)
-                db.setStopLoss(stop_loss)
-                db.setTotalPercentGain(percentGained)
+
+            if (side == 'Buy'):
+                stop_loss = lastCandleLow - (2.0 * self.calc.calcOnePercentLessEntry())
                 print("level: " + str(level))
                 print("stop_loss: " + str(stop_loss))
+                print("")
+                if (level < stop_loss):
+                    print("! slStrat Buy")
+                    print("level: " + str(level))
+                    print("stop_loss: " + str(stop_loss))
+                    print("")
+                    level = stop_loss
+                    self.changeStopLoss(stop_loss)
+                    db.setStopLoss(stop_loss)
+                    db.setTotalPercentGain(percentGained)
+
+            elif (side == 'Sell'):
+                stop_loss = lastCandleHigh + (2.0 * self.calc.calcOnePercentLessEntry())
+                print("level: " + str(level))
+                print("stop_loss: " + str(stop_loss))
+                print("")
+                if (level == 0) or (level > stop_loss):
+                    print("! slStrat Sell")
+                    print("level: " + str(level))
+                    print("stop_loss: " + str(stop_loss))
+                    print("")                    
+                    level = stop_loss    
+                    self.changeStopLoss(stop_loss)
+                    db.setStopLoss(stop_loss)
+                    db.setTotalPercentGain(percentGained)
 
         else:
             print('invalid strategy')
