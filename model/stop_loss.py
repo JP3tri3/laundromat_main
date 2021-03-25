@@ -24,6 +24,8 @@ class Stop_Loss():
 
     def updateStopLoss(self, slStrat):
         side = self.api.getPositionSide()
+        print("updateStopLoss()")
+        print("Level: " + str(level))
         if(side == 'Buy'):
             if(self.api.lastPrice() > level):
                 self.calculateStopLoss(slStrategy=slStrat)
@@ -86,11 +88,8 @@ class Stop_Loss():
                 pre_percent_level = percent_level
 
         elif (slStrategy == 'candles'):
-            print("Calculating stop loss in slStrategy")
             lastCandleHigh = comms.viewData(db.getDataName(), 'last_candle_high')
             lastCandleLow = comms.viewData(db.getDataName(), 'last_candle_low')
-
-
 
             if (side == 'Buy'):
                 stop_loss = lastCandleLow - (2.0 * self.calc.calcOnePercentLessEntry())
@@ -98,10 +97,6 @@ class Stop_Loss():
                 print("stop_loss: " + str(stop_loss))
                 print("")
                 if (level < stop_loss):
-                    print("! slStrat Buy")
-                    print("level: " + str(level))
-                    print("stop_loss: " + str(stop_loss))
-                    print("")
                     level = stop_loss
                     self.changeStopLoss(stop_loss)
                     db.setStopLoss(stop_loss)
@@ -112,11 +107,7 @@ class Stop_Loss():
                 print("level: " + str(level))
                 print("stop_loss: " + str(stop_loss))
                 print("")
-                if (level == 0) or (level > stop_loss):
-                    print("! slStrat Sell")
-                    print("level: " + str(level))
-                    print("stop_loss: " + str(stop_loss))
-                    print("")                    
+                if (level == 0) or (level > stop_loss):                
                     level = stop_loss    
                     self.changeStopLoss(stop_loss)
                     db.setStopLoss(stop_loss)

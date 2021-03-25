@@ -56,6 +56,7 @@ async def webhook(request):
 
         #strategy:
         # strat.determineVwapTrend()
+
         if (data['input_name'] == '9_min'):
             strat9min.determineVwapTrend()
         elif (data['input_name'] == '16_min'):
