@@ -4,6 +4,7 @@ import database.database as db
 from model.calc import Calc
 import json
 import datetime
+import sql_connector as conn
 
 total_profit_loss = 0
 total_number_trades = 0
@@ -57,23 +58,15 @@ def viewData(nameInput, keyInput):
         viewData(name, key)
 
 def updateDataPersistent(data):
-        inputName = data['input_name']
+        input_name = data['input_name']
 
-        lastCandleHigh = data['last_candle_high']
-        lastCandleLow = data['last_candle_low']
-        lastCandleVwap = data['last_candle_vwap']
+        last_candle_high = data['last_candle_high']
+        last_candle_low = data['last_candle_low']
+        last_candle_vwap = data['last_candle_vwap']
         wt1 = data['wt1']
         wt2 = data['wt2']
-        codeRedNotice = data['code_red']
 
-        updateData(inputName, 'last_candle_high', lastCandleHigh)
-        updateData(inputName, 'last_candle_low', lastCandleLow)
-        updateData(inputName, 'last_candle_vwap', lastCandleVwap)
-
-        updateData(inputName, 'wt1', wt1)
-        updateData(inputName, 'wt2', wt2)
-
-        updateData('notice', 'code_red', codeRedNotice)
+        conn.updateStratValues(input_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
 
 def updateDataOnAlert(data):
         inputName = data['name']

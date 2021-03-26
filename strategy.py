@@ -8,6 +8,7 @@ from api.bybit_api import Bybit_Api
 import controller.comms as comms
 import database.database as db
 import time
+import sql_connector as conn
 
 class Strategy():
 
@@ -16,92 +17,94 @@ class Strategy():
     calc = Calc()
     api = Bybit_Api()
 
-    def __init__(self, vwapMarginNegInput, vwapMarginPosInput, dataNameInput):
-        global vwapMarginNeg
-        global vwapMarginPos
-        global data_name
-        global lastVwap
-        global currentVwap
-        global lastTrend
+    def __init__(self, vwap_margin_neg_input, vwap_margin_pos_input, strat_id_input, trade_id_input):
+        global vwap_margin_neg
+        global vwap_margin_pos
+        global strat_id
+        global trade_id
+        global last_vwap
+        global current_vwap
+        global last_trend
 
-        vwapMarginNeg = vwapMarginNegInput
-        vwapMarginPos = vwapMarginPosInput
-        data_name = dataNameInput
-        lastVwap = 0.0
-        currentVwap = 0.0
-        lastTrend = ""
-        lastCandleWt1 = 0.0
-        lastCandleWt2 = 0.0
+        vwap_margin_neg = vwap_margin_neg_input
+        vwap_margin_pos = vwap_margin_pos_input
+        strat_id = strat_id_input
+        trade_id = trade_id_input
+        last_vwap = 0.0
+        current_vwap = 0.0
+        last_trend = ""
+        last_candle_wt1 = 0.0
+        last_candle_wt2 = 0.0
 
     #single
     def determineVwapTrend(self):
-        global lastVwap
-        global currentVwap
-        global vwapTrend
-        global lastTrend
+        global last_vwap
+        global current_vwap
+        global last_trend
 
-        newTrend = ""
+        new_trend = ""
         
-        lastCandleVwap = comms.viewData(data_name, 'last_candle_vwap')
-        activeTrend = comms.viewData(data_name, 'active_trend')
+        last_Candle_vwap = conn.viewDbValue('strategy', strat_id, 'last_candle_vwap')
+        active_trend = conn.viewDbValue('strategy', strat_id, 'active_trend')
 
-        if (lastCandleVwap != currentVwap):
-            lastVwap = currentVwap
+        if (last_Candle_vwap != current_vwap):
+            last_vwap = current_vwap
             print("")
-            print("lastVwap: " + str(lastVwap))
-            currentVwap = lastCandleVwap
-            print("current vwap: " + str(currentVwap))
+            print("last_vwap: " + str(last_vwap))
+            current_vwap = last_Candle_vwap
+            print("current vwap: " + str(current_vwap))
 
-            if(currentVwap >= vwapMarginPos) and (lastVwap <= vwapMarginPos):
-                newTrend = 'cross_up'
-            elif(currentVwap <= vwapMarginNeg) and (lastVwap >= vwapMarginNeg):
-                newTrend = 'cross_down'
-            elif(currentVwap > 0) and (lastVwap > 0):
-                newTrend = 'positive_vwap'
-            elif(currentVwap < 0) and (lastVwap < 0):
-                newTrend = 'negative_vwap'
+            if(current_vwap >= vwap_margin_pos) and (last_vwap <= vwap_margin_pos):
+                new_trend = 'cross_up'
+            elif(current_vwap <= vwap_margin_neg) and (last_vwap >= vwap_margin_neg):
+                new_trend = 'cross_down'
+            elif(current_vwap > 0) and (last_vwap > 0):
+                new_trend = 'positive_vwap'
+            elif(current_vwap < 0) and (last_vwap < 0):
+                new_trend = 'negative_vwap'
             else:
-                newTrend = 'not_enough_information'
+                new_trend = 'not_enough_information'
             
-            if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
-                if (activeTrend != 'null') and (activeTrend != newTrend):
-                    comms.updateData(data_name, 'active_position', 'change')
-                if ((lastTrend == 'cross_up') and (newTrend == 'cross_down')) or ((lastTrend == 'cross_down') and (newTrend == 'cross_up')):
-                    comms.updateData(data_name, 'new_trend', newTrend)
+            if (new_trend == 'cross_up') or (new_trend == 'cross_down'):
+                if (active_trend != 'null') and (active_trend != new_trend):
+                    conn.updateTableValue('strategy', strat_id, 'active_position', 'change')
+                if ((last_trend == 'cross_up') and (new_trend == 'cross_down')) or ((last_trend == 'cross_down') and (new_trend == 'cross_up')):
+                    conn.updateTableValue('strategy', strat_id, 'new_trend', new_trend)
 
-            print("lastTrend: " + str(lastTrend))
-            print("newTrend: " + str(newTrend))
-            comms.updateData(data_name, 'new_trend', newTrend)
-            lastTrend = comms.viewData(data_name, 'new_trend')
-            comms.updateData(data_name, 'last_trend', lastTrend)
-            
+            print("last_trend: " + str(last_trend))
+            print("new_trend: " + str(new_trend))
+            conn.updateTableValue('strategy', strat_id, 'new_trend', new_trend)
+            last_trend = comms.viewData(data_name, 'new_trend')
+            conn.updateTableValue('strategy', strat_id, 'last_trend', last_trend)
+
     def vwapCrossStrategy(self):
-        initial_stop_loss = 0
         self.determineVwapTrend()
-        newTrend = comms.viewData(data_name, 'new_trend')
-        comms.updateData(data_name, 'new_trend', 'null')
-        lastCandleWt1 = comms.viewData(data_name, 'wt1')
-        lastCandleWt2 = comms.viewData(data_name, 'wt2')
+        new_trend = conn.viewDbValue('strategy', strat_id, 'new_trend')
+        conn.updateTableValue('strategy', strat_idid, 'new_trend', 'null')
+        last_candle_wt1 = conn.viewDbValue('strategy', strat_id, 'wt1')
+        last_candle_wt1 = conn.viewDbValue('strategy', strat_id, 'wt2')
         active_trend = comms.viewData(data_name, 'active_trend')
+        active_trend = conn.viewDbValue('strategy', strat_id, 'active_trend')
 
-        if (newTrend != 'null') and (newTrend != active_trend):
-            if (newTrend == 'cross_up') or (newTrend == 'cross_down'):
+        if (new_trend != 'null') and (new_trend != active_trend):
+            if (new_trend == 'cross_up') or (new_trend == 'cross_down'):
                 if (self.orders.activePositionCheck() == 1):
                     print("closing active Position")
                     self.orders.closePositionMarket()
                     comms.logClosingDetails()
 
-                if ((newTrend == 'cross_up') and (lastCandleWt1 < 5) and (lastCandleWt2 < 5)) or (newTrend == 'cross_down') and (lastCandleWt1 > -5) and (lastCandleWt2 > -5):
-                    if (newTrend == 'cross_up'):
+                if ((new_trend == 'cross_up') and (last_candle_wt1 < 5) and (last_candle_wt2 < 5)) or (new_trend == 'cross_down') and (last_candle_wt1 > -5) and (last_candle_wt2 > -5):
+                    input_quantity = conn.viewDbValue('trades', trade_id, 'input_quantity')
+                    if (new_trend == 'cross_up'):
                         print("Opening new Long:")
-                        self.orders.createOrder(side='Buy', order_type='Market', inputQuantity=db.getInputQuantity())
+                        self.orders.createOrder(side='Buy', order_type='Market', input_quantity)
 
-                    elif (newTrend == 'cross_down'):
+                    elif (new_trend == 'cross_down'):
                         print("Opening new Short:")
-                        self.orders.createOrder(side='Sell', order_type='Market', inputQuantity=db.getInputQuantity())
+                        self.orders.createOrder(side='Sell', order_type='Market', input_quantity)
 
-                    comms.updateData(data_name, 'active_trend', newTrend)
-                    comms.updateData(data_name, 'active_position', 'null')
+                    conn.updateTradeValues('strategy', strat_id, 'active_trend', new_trend)
+                    conn.updateTradeValues('strategy', strat_id, 'active_position', 'null')
                     #process Stop Loss:
                     print("Checking for stop loss...")
                     flag = True
@@ -121,8 +124,7 @@ class Strategy():
                                 print("Percent Gained: " +
                                             str(self.calc.calcPercentGained()))
                                 print("Last Price: " + str(self.api.lastPrice()))
-
-                        elif(comms.viewData(db.getDataName(), 'active_position') == 'change'):
+                        elif(conn.viewDbValue('strategy', strat_id, 'active_position') == 'change'):
                             flag = False
 
                         #process SL if position is active
@@ -133,12 +135,10 @@ class Strategy():
                             else:
                                 print("Position Closed")
                                 print("")
-                                comms.updateData(data_name, 'active_trend', 'null')
+                                conn.updateTradeValues('strategy', strat_id, 'active_trend', 'null')
                                 comms.logClosingDetails()
                                 flag = False
 
                 
-                  
 
-
-#check for order of lastTrend verse newTrend
+#check for order of last_trend verse new_trend

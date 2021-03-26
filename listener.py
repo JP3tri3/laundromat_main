@@ -22,10 +22,10 @@ jinja = SanicJinja2(app, pkg_name="listener")
 myTime = int(time.time() * 1000)
 trendFlag = False
 
-strat = Strategy(-10.5, 10.5, '1_min')
-strat9min = Strategy9min(-10.5, 10.5, '9_min')
-strat16min = Strategy16min(-8, 8, '16_min')
-strat30min = Strategy30min(-7, 7, '30_min')
+strat = Strategy(-10.5, 10.5, '1_min', 'bybit_btcusd_auto_1')
+# strat9min = Strategy9min(-10.5, 10.5, '9_min')
+# strat16min = Strategy16min(-8, 8, '16_min')
+# strat30min = Strategy30min(-7, 7, '30_min')
 
 @app.route('/')
 async def index(request):
@@ -55,14 +55,14 @@ async def webhook(request):
             comms.updateDataOnAlert(data)
 
         #strategy:
-        # strat.determineVwapTrend()
+        strat.determineVwapTrend()
 
-        if (data['input_name'] == '9_min'):
-            strat9min.determineVwapTrend()
-        elif (data['input_name'] == '16_min'):
-            strat16min.determineVwapTrend()
-        elif (data['input_name'] == '30_min'):  
-            strat30min.determineVwapTrend()
+        # if (data['input_name'] == '9_min'):
+        #     strat9min.determineVwapTrend()
+        # elif (data['input_name'] == '16_min'):
+        #     strat16min.determineVwapTrend()
+        # elif (data['input_name'] == '30_min'):  
+        #     strat30min.determineVwapTrend()
 
         return json({
             "code": "success",

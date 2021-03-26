@@ -17,17 +17,19 @@ async def main():
     leverage = 5
     symbolPair = 'BTCUSD'
     inputQuantity = 500
-    data_name = '1_min'
+    strat_id = '1_min'
+    trade_id = 'bybit_btcusd_manual'
     vwapMarginNeg = -10.5
     vwapMarginPos = 10.5
 
+
     if (symbolPair == "BTCUSD"):
-        db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, data_name)
+        db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, strat_id, trade_id)
     elif (symbolPair == "ETHUSD"):
-        db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, data_name)
+        db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, strat_id, trade_id)
 
 
-    strat = Strategy(vwapMarginNeg, vwapMarginPos, data_name)
+    strat = Strategy(vwapMarginNeg, vwapMarginPos, strat_id, trade_id)
     api = Bybit_Api()
 
     api.setLeverage()

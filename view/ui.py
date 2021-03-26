@@ -6,6 +6,7 @@ from api.bybit_api import Bybit_Api
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
 from model.calc import Calc
+import sql_connector as conn
 
 class Ui:
 
@@ -21,30 +22,33 @@ class Ui:
         data_name = ''
 
         while (flag == True):
-            symbolPair = input("Enter Symbol: ").upper()
-            if (symbolPair == "BTCUSD") or (symbolPair == "ETHUSD"):
+            symbol_pair = input("Enter Symbol: ").upper()
+            if (symbol_pair == "BTCUSD") or (symbol_pair == "ETHUSD"):
                 flag = False
             else:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
-        if (symbolPair == "BTCUSD"):
-            db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, data_name)
-        elif (symbolPair == "ETHUSD"):
-            db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, data_name)
+        if (symbol_pair == "BTCUSD"):
+            id_name = 'bybit_btcusd_manual'
+            conn.updateTradeValues(id_name, 'BTC', 'BTCUSD', 0, 0.50, leverage, inputQuantity, data_name)
+        elif (symbol_pair == "ETHUSD"):
+            id_name = 'bybit_ethusd_manual'
+            conn.updateTradeValues(id_name, 'ETH', 'ETHUSD', 1, 0.05, leverage, inputQuantity, data_name)
+
 
         self.api = Bybit_Api()
         self.orders = Orders()
         self.sl = Stop_Loss()
         self.calc = Calc()
 
-        self.inputOptions(symbolPair)
-        self.startMenu(symbolPair)
+        self.inputOptions(symbol_pair)
+        self.startMenu(symbol_pair, id_name)
 
-    def inputOptions(self, symbolPair):
+    def inputOptions(self, symbol_pair):
         print("")
         print("TESTNET - Input Options:")
         print("")
-        print("Symbol: " + symbolPair)
+        print("Symbol: " + symbol_pair)
         print("")
         print("Market Actions:")
         print("")
@@ -68,8 +72,9 @@ class Ui:
         print("Change Currency: change")
         print("Exit: 'exit'")
 
-    def startMenu(self, symbolPair):
+    def startMenu(self, symbol_pair, id_name):
         flag = True
+        input_quantity = conn.viewDbValue('trades', id_name, 'input_quantity')
 
         while(flag == True):
 
@@ -87,16 +92,16 @@ class Ui:
                 print(self.api.symbolInfoResult())
 
             elif(taskInput == "long"):
-                self.orders.createOrder("Buy", 'Limit', db.getInputQuantity())
+                self.orders.createOrder("Buy", 'Limit', input)
 
             elif(taskInput == "short"):
-                self.orders.createOrder("Sell", 'Limit', db.getInputQuantity())
+                self.orders.createOrder("Sell", 'Limit', input_quantity)
 
             elif(taskInput == "long market"):
-                self.orders.createOrder('Buy', 'Market', db.getInputQuantity())
+                self.orders.createOrder('Buy', 'Market', input_quantity)
 
             elif(taskInput == "short market"):
-                self.orders.createOrder("Sell", 'Market', db.getInputQuantity())
+                self.orders.createOrder("Sell", 'Market', input_quantity)
 
             elif(taskInput == "wallet"):
                 self.api.myWallet()
@@ -123,7 +128,7 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                print(self.api.getSymbolPair())
+                print(self.api.symbol_pair())
 
             elif(taskInput == "test1"):
                 print(self.api.lastPrice())
@@ -147,7 +152,7 @@ class Ui:
 
             else:
                 print("Invalid Input, try again...")
-                self.inputOptions(symbolPair)
+                self.inputOptions(symbol_pair)
 
     def shutdown(self):
         print("")
