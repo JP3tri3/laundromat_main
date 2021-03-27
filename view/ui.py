@@ -20,6 +20,7 @@ class Ui:
         leverage = 5
         inputQuantity = 100 * leverage
         data_name = ''
+        trade_id = 'bybit_btcusd_manual'
 
         while (flag == True):
             symbol_pair = input("Enter Symbol: ").upper()
@@ -39,7 +40,7 @@ class Ui:
         self.api = Bybit_Api()
         self.orders = Orders()
         self.sl = Stop_Loss()
-        self.calc = Calc()
+        self.calc = Calc(trade_id)
 
         self.inputOptions(symbol_pair)
         self.startMenu(symbol_pair, id_name)

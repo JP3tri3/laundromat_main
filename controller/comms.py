@@ -4,12 +4,9 @@ import database.database as db
 from model.calc import Calc
 import json
 import datetime
-import sql_connector as conn
 
 total_profit_loss = 0
 total_number_trades = 0
-
-calc = Calc()
 
 def timeStamp():
     ct = datetime.datetime.now()
@@ -69,17 +66,20 @@ def updateDataPersistent(data):
         conn.updateStratValues(input_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
 
 def updateDataOnAlert(data):
-        inputName = data['name']
-        inputKey = data['key']
-        inputValue = data['value']
+        strat_id = data['name']
+        input_column = data['key']
+        input_value = data['value']
 
         updateData(inputName, inputKey, inputValue)
+        conn.updateTableValue('strategy', strat_id, input_column, input_value)
 
 
-def logClosingDetails():
+def logClosingDetails(trade_id_input):
+    calc = Calc(trade_id_input)
     global total_profit_loss
     global total_number_trades
 
+    symbol_pair = 'null'
     entry_price = calc.calcEntryPrice()
     exit_price = calc.calcExitPrice()
     percent_gain = db.getTotalPercentGain()
@@ -107,6 +107,8 @@ def logClosingDetails():
     f.close()
     print("Logged Closing Details")
 
+    conn.createTradeRecord(trade_id_input, symbol_pair, entry_price, exit_price, stop_loss, total_percent_gained, total_gain, coin_gain, total_number_trades, total_profit_loss)
+
     updateDisplayData('mainTest_number_Of_trades', total_number_trades)
     updateDisplayData('mainTest_profit_loss', round(total_profit_loss, 4))
 
@@ -114,19 +116,13 @@ def clearJson(flag, dataNameInput):
     if(flag == True):
         updateDisplayData('mainTest_number_Of_trades', 0)
         updateDisplayData('mainTest_profit_loss', 0)
+        updateDisplayData('test1_number_Of_trades', 0)
+        updateDisplayData('test1_profit_loss', 0)
+        updateDisplayData('test2_number_Of_trades', 0)
+        updateDisplayData('test2_profit_loss', 0)
+        updateDisplayData('test3_number_Of_trades', 0)
+        updateDisplayData('test3_profit_loss', 0)        
         print("Display Cleared")
-
-        updateData(dataNameInput, 'last_candle_high', 0)
-        updateData(dataNameInput, 'last_candle_low', 0)
-        updateData(dataNameInput, 'last_candle_vwap', 0)
-
-        updateData(dataNameInput, 'active_position', 'null')
-        updateData(dataNameInput, 'new_trend', 'null')
-        updateData(dataNameInput, 'active_trend', 'null')
-        updateData(dataNameInput, 'last_trend', 'null')
-
-        updateData(dataNameInput, 'wt1', 0)
-        updateData(dataNameInput, 'wt2', 0)
 
 
 def clearLogs(flag):

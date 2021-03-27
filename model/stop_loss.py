@@ -7,15 +7,21 @@ from model.calc import Calc
 from model.orders import Orders
 import controller.comms as comms
 
-percent_level = 0
-level = 0
-stop_loss = 0
 
-class Stop_Loss():
+class Stop_Loss:
 
-    api = Bybit_Api()
-    calc = Calc()
-    orders = Orders()
+    # trade_id = None
+    percent_level = 0
+    level = 0
+    stop_loss = 0
+
+    def __init__(self, trade_id_input):
+
+        self.trade_id = trade_id_input
+
+        api = Bybit_Api(self.trade_id)
+        calc = Calc(self.trade_id)
+        orders = Orders(self.trade_id)
 
     def changeStopLoss(self, slAmount):
         self.api.changeStopLoss(slAmount)

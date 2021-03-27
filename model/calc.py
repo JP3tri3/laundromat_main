@@ -1,14 +1,18 @@
 import sys
 sys.path.append("..")
-import database.database as db
-from api.bybit_api import Bybit_Api
+import sql_connector as conn
+from database.database import Database
 
 symbol = None
 symbolPair = None
 
-class Calc():
+class Calc:
 
-    api = Bybit_Api()
+    def __init__(self):
+
+        self.api = Bybit_Api()
+        self.db = Database()
+
 
     def calcFees(self, market_type, inputQuantity):
         return (inputQuantity) * 0.00075 if (market_type == "Market") \
@@ -23,7 +27,7 @@ class Calc():
         total = 0
         index = 0
         totalQuantity = 0
-        inputQuantity = db.getInputQuantity()
+        inputQuantity = self.db.get_input_quantity()
         flag = False
 
         while(flag == False):
@@ -40,7 +44,7 @@ class Calc():
     def calcTotalCoin(self):
         index = 0
         totalQuantity = 0
-        inputQuantity = db.getInputQuantity()
+        inputQuantity = self.db.get_input_quantity()
         total = 0.0
         flag = False
 
@@ -64,7 +68,7 @@ class Calc():
         entry_price = 0
         totalQuantity = 0
 
-        inputQuantity = db.getInputQuantity()
+        inputQuantity = self.db.get_input_quantity()
         flag = False
 
         while(flag == False):
@@ -90,7 +94,7 @@ class Calc():
         lastExitPrice = self.api.lastExitPrice(index)
         exit_price = 0
         totalQuantity = 0
-        inputQuantity = db.getInputQuantity()
+        inputQuantity = self.db.get_input_quantity()
         flag = False
 
         while(flag == False):
@@ -111,12 +115,12 @@ class Calc():
 
 
     def calcOnePercentLessEntry(self):
-        leverage = db.getLeverage()
+        leverage = self.db.get_leverage()
         entry_price = self.api.getActivePositionEntryPrice()
         return(float(entry_price) * 0.01) / leverage
 
     def calcOnePercent(self):
-        leverage = db.getLeverage()
+        leverage = self.db.get_leverage()
         last_price = self.api.lastPrice()
         return(float(last_price) * 0.01) / leverage        
            
@@ -125,7 +129,7 @@ class Calc():
             side = self.api.getPositionSide()
             entry_price = self.api.getActivePositionEntryPrice()
             lastPrice = self.api.lastPrice()
-            leverage = db.getLeverage()
+            leverage = self.db.get_leverage()
 
             difference = (lastPrice - entry_price) if(side == "Buy") \
                 else (entry_price - lastPrice)
@@ -138,7 +142,6 @@ class Calc():
 
     def calcLimitPriceDifference(self, side):
         lastPrice = self.api.lastPrice()
-        difference = db.getLimitPriceDifference()
-
+        difference = self.db.get_limit_price_difference()
         return (lastPrice - difference) if (side == 'Buy') \
             else (lastPrice + difference)

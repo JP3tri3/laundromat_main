@@ -1,108 +1,127 @@
-import bybit
-import config
+import sys
+sys.path.append("..")
+import auto
+import database.sql_connector as conn
 
-client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
-                     api_secret=config.BYBIT_TESTNET_API_SECRET)
+class Database:
 
+    def __init__ (self):
+        self.trade_id = auto.get_trade_id()
+        self.strat_id = auto.get_strat_id()
 
-symbol = None
-symbolPair = None
-keyInput = None
-limitPriceDifference = None
-leverage = None
-level = 0.0
-entry_price = None
-stop_loss = None
-exit_price = None
-side = None
-total_percent_gained = 0
-data_name = ''
-
-def setInitialValues(symbolInput, symbolPairInput, leverageInput, inputKeyInput, limitPriceDifferenceInput, inputQuantityInput, dataNameInput):
-    global symbol
-    global symbolPair
-    global keyInput
-    global limitPriceDifference
-    global leverage
-    global inputQuantity
-    global data_name
-
-    symbol = symbolInput
-    symbolPair = symbolPairInput
-    keyInput = inputKeyInput
-    limitPriceDifference = limitPriceDifferenceInput
-    leverage = leverageInput
-    inputQuantity = inputQuantityInput
-    data_name = dataNameInput
+        print("DATABASE INITIALIZED")
 
 
-def getSymbol():
-    return symbol
+    # # trades table:
 
-def getKeyInput():
-    return keyInput
+    def get_symbol(self):
+        return conn.viewDbValue('trades', self.trade_id, 'symbol')
 
-def getSymbolPair():
-    return symbolPair
+    def get_key_input(self):
+        return conn.viewDbValue('trades', self.trade_id, 'key_input')
 
-def getLimitPriceDifference():
-    return limitPriceDifference
+    def get_symbol_pair(self):
+        return conn.viewDbValue('trades', self.trade_id, 'symbol_pair')
 
-def setSide(sideInput):
-    global side
-    side = sideInput
+    def get_limit_price_difference(self):
+        return conn.viewDbValue('trades', self.trade_id, 'limit_price_difference')
 
-def getSide():
-    return side
+    def set_side(self):
+        return conn.viewDbValue('trades', self.trade_id, 'limit_price_difference')
 
-def getInputQuantity():
-    return inputQuantity
+    def get_side(self, trade_record_id):
+        return conn.viewDbValue('trade_records', trade_record_id, 'side')
 
-def setInputQuantity(inputQuantityInput):
-    global inputQuantity
-    inputQuantity = inputQuantityInput
+    def get_input_quantity(self):
+        return conn.viewDbValue('trades', self.trade_id, 'input_quantity')
 
-def setLevel(levelInput):
-    global level
-    level = levelInput
+    def set_input_quantity(self, data_input):
+        conn.updateTableValue('trades', self.trade_id, 'input_quantity', data_input)
 
-def getLevel():
-    return level
+    def get_leverage(self):
+        return conn.viewDbValue('trades', self.trade_id, 'leverage')
 
-def setEntryPrice(entryPriceInput):
-    global entry_price
-    entry_price = entryPriceInput
 
-def getEntryPrice():
-    return entry_price
+    # # strategy table:
 
-def setStopLoss(stopLossInput):
-    global stop_loss
-    stop_loss = stopLossInput
+    def get_wt1(self):
+        return conn.viewDbValue('strategy', self.strat_id 'wt1')    
 
-def getStopLoss():
-    return stop_loss
+    def get_wt2(self):
+        return conn.viewDbValue('strategy', self.strat_id 'wt2')       
 
-def setExitPrice(exitPriceInput):
-    global exit_price
-    exit_price = exitPriceInput
+    def get_last_candle_vwap(self):
+        return conn.viewDbValue('strategy', self.strat_id 'last_candle_vwap')       
 
-def getExitPrice():
-    return exit_price
+    def get_last_candle_low(self):
+        return conn.viewDbValue('strategy', self.strat_id 'last_candle_low')  
 
-def setTotalPercentGain(totalPercentGainInput):
-    global total_percent_gained
-    total_percent_gained = totalPercentGainInput
+    def get_last_candle_high(self):
+        return conn.viewDbValue('strategy', self.strat_id 'last_candle_high')  
 
-def getTotalPercentGain():
-    return total_percent_gained
+    def get_active_position(self):
+        return conn.viewDbValue('strategy', self.strat_id 'active_position')  
 
-def getLeverage():
-    return leverage
+    def set_active_position(self, data_input):
+        return conn.updateTableValue('strategy', self.strat_id 'active_position', data_input)  
 
-def setLeverage(leverageInput):
-    global leverage
-    leverage = leverageInput
+    def get_new_trend(self):
+        return conn.viewDbValue('strategy', self.strat_id 'new_trend')  
 
-def getDataName():
-    return data_name
+    def set_new_trend(self, data_input):
+        return conn.updateTableValue('strategy', self.strat_id 'new_trend', data_input)  
+
+    def get_last_trend(self):
+        return conn.viewDbValue('strategy', self.strat_id 'last_trend')  
+
+    def set_last_trend(self, data_input):
+        return conn.updateTableValue('strategy', self.strat_id 'last_trend', data_input)  
+
+    def get_active_trend(self):
+        return conn.viewDbValue('strategy', self.strat_id 'active_trend')  
+
+    def set_active_trend(self, data_input):
+        return conn.updateTableValue('strategy', self.strat_id 'active_trend', data_input)  
+
+    # # trade_records table:
+
+
+    # def setLevel(self):
+    #     global level
+    #     level = levelInput
+
+    # def getLevel(self):
+    #     return level
+
+    # def setEntryPrice(self):
+    #     global entry_price
+    #     entry_price = entryPriceInput
+
+    # def getEntryPrice(self):
+    #     return entry_price
+
+    # def setStopLoss(self):
+    #     global stop_loss
+    #     stop_loss = stopLossInput
+
+    # def getStopLoss(self):
+    #     return stop_loss
+
+    # def setExitPrice(self):
+    #     global exit_price
+    #     exit_price = exitPriceInput
+
+    # def getExitPrice(self):
+    #     return exit_price
+
+    # def setTotalPercentGain(self):
+    #     global total_percent_gained
+    #     total_percent_gained = totalPercentGainInput
+
+    # def getTotalPercentGain(self):
+    #     return total_percent_gained
+
+    # def setLeverage(self):
+    #     global leverage
+    #     leverage = leverageInput
+

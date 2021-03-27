@@ -8,32 +8,25 @@ from model.calc import Calc
 import time
 import asyncio
 
-symbol = None
-symbolPair = None
-limitPriceDifference = None
-orderId = None
-atr = None
 
-class Orders():
-
+class Orders:
+    
     def __init__(self):
-        global symbol
-        global limitPriceDifference
-        global client
+        self.trade_record_id = 0
+        self.symbol = conn.viewDbValue('trades', self.trade_id, 'symbol')
+        self.symbol_pair = conn.viewDbValue('trades', self.trade_id, 'symbol_pair')
+        self.atr = None
 
-        self.symbol = db.getSymbol()
-        self.symbolPair = db.getSymbolPair()
-        self.limitPriceDifference = db.getLimitPriceDifference()
-        
+        self.api = Bybit_Api()
+        self.calc = Calc()
 
-    api = Bybit_Api()
-    calc = Calc()
+    def initiateCreateTradeRecord(self):
+        global trade_record_id
+        self.trade_record_id = self.trade_record_id + 1
 
-    def test(self):
-        return(self.symbolPair)
+        conn.createTradeRecord(self.trade_record_id, self.symbol_pair, 0, 0, 0, 0, 0, 0, 0, 'empty', 0)
 
     def activeOrderCheck(self):
-        global orderId
         order = self.api.getOrder()
         return 0 if (order == []) else 1
 
@@ -105,7 +98,7 @@ class Orders():
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")
                     entry_price = self.calc.calcLimitPriceDifference(side)
-                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=db.getInputQuantity(), stop_loss=initialStopLoss, reduce_only=False)
+                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=conn.viewDbValue('trades', trade_id, 'input_quantity'), stop_loss=initialStopLoss, reduce_only=False)
                     
                     db.setSide(side)
                     db.setEntryPrice(self.api.getActivePositionEntryPrice)

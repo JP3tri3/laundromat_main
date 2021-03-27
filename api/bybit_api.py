@@ -3,23 +3,19 @@ sys.path.append("..")
 import database.database as db
 import config
 import bybit
-
-pairSymbol = ''
+import sql_connector as conn
 
 class Bybit_Api():
 
-    client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY,
-                         api_secret=config.BYBIT_TESTNET_API_SECRET)
+    def __init__(self, trade_id_input):
 
-    # def __init__(self):
-    #     return
-
-    global pairSymbol
-
-    pairSymbol = str(db.getSymbolPair())
+        self.trade_id = trade_id_input
+        self.client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY, api_secret=config.BYBIT_TESTNET_API_SECRET)
+        self.symbol_pair = conn.viewDbValue('trades', self.trade_id, 'symbol_pair')
+        self.key_input = conn.viewDbValue('trades', self.trade_id, 'key_input')
 
     def getKeyInput(self):
-        return db.getKeyInput()
+        return self.key_input
 
     def myWallet(self):
         myWallet = self.client.Wallet.Wallet_getBalance(
@@ -51,10 +47,10 @@ class Bybit_Api():
         indexPrice = keyInfo['index_price']
 
         print("")
-        print("Last Price: " + pairSymbol + " " + lastPrice)
-        print("Mark Price: " + pairSymbol + " " + markPrice)
-        print("Ask Price: " + pairSymbol + " " + askPrice)
-        print("Index Price: " + pairSymbol + " " + indexPrice)
+        print("Last Price: " + symbol_pair + " " + lastPrice)
+        print("Mark Price: " + symbol_pair + " " + markPrice)
+        print("Ask Price: " + symbol_pair + " " + askPrice)
+        print("Index Price: " + symbol_pair + " " + indexPrice)
         print("")
 
     def lastPrice(self):

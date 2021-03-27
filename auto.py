@@ -1,36 +1,41 @@
 import sys
 sys.path.append("..")
 import controller.comms as comms
-import database.database as db
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
 from api.bybit_api import Bybit_Api
-import config
 from strategy import Strategy
 from time import time, sleep
 import datetime
 
 import asyncio
 
+leverage = 5
+symbol_pair = 'BTCUSD'
+input_quantity = 500
+strat_id = '1_min'
+trade_id = 'bybit_btcusd_manual'
+vwap_margin_neg = -10.5
+vwap_margin_pos = 10.5
+
+def get_trade_id():
+    return trade_id
+
+def get_strat_id():
+    return strat_id
+
 async def main():
 
-    leverage = 5
-    symbolPair = 'BTCUSD'
-    inputQuantity = 500
-    strat_id = '1_min'
-    trade_id = 'bybit_btcusd_manual'
-    vwapMarginNeg = -10.5
-    vwapMarginPos = 10.5
+    if (symbol_pair == "BTCUSD"):
+        conn.updateTradeValues(trade_id, 'BTC', symbol_pair, 0, 0.50, 5, input_quantity, strat_id)
+    elif (symbol_pair == "ETHUSD"):
+        conn.updateTradeValues(trade_id, 'ETH', symbol_pair, 1, 0.05, 5, input_quantity, strat_id)
+    else:
+        print("Invalid Symbol Pair")
 
-
-    if (symbolPair == "BTCUSD"):
-        db.setInitialValues('BTC', symbolPair, leverage, 0, 0.50, inputQuantity, strat_id, trade_id)
-    elif (symbolPair == "ETHUSD"):
-        db.setInitialValues('ETH', symbolPair, leverage, 1, 0.05, inputQuantity, strat_id, trade_id)
-
-
-    strat = Strategy(vwapMarginNeg, vwapMarginPos, strat_id, trade_id)
+    strat = Strategy(vwap_margin_neg, vwap_margin_pos)
     api = Bybit_Api()
+    order = Orders()
 
     api.setLeverage()
 
@@ -50,10 +55,7 @@ async def main():
             comms.timeStamp()
             temp = 0
         strat.vwapCrossStrategy()
-
-
-
-        
+    order.activePositionCheck()    
 
 
 
