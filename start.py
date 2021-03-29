@@ -7,4 +7,4 @@ db = Database()
 
 # print(db.get_trade_values())
 
-print(db.get_strat_values())
+# print(db.get_strat_values())

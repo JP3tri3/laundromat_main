@@ -6,9 +6,12 @@ import database.sql_connector as conn
 class Database:
 
     def __init__ (self):
-        self.trade_id = auto.get_trade_id()
-        self.strat_id = auto.get_strat_id()
-        self.trade_record_id = 0
+        if (auto.get_active == True):
+            self.trade_id = auto.get_trade_id()
+            self.strat_id = auto.get_strat_id()
+        else:
+            self.trade_id = 'bybit_manual'
+            self.strat_id = 'empty'
 
         print("DATABASE INITIALIZED")
 
@@ -27,11 +30,11 @@ class Database:
     def get_limit_price_difference(self):
         return conn.viewDbValue('trades', self.trade_id, 'limit_price_difference')
 
-    def set_side(self):
-        return conn.viewDbValue('trades', self.trade_id, 'limit_price_difference')
+    def get_side(self):
+        return conn.viewDbValue('trades', self.trade_id, 'side')
 
-    def get_side(self, trade_record_id):
-        return conn.viewDbValue('trade_records', trade_record_id, 'side')
+    def set_side(self, side):
+        return conn.updateTableValue('trades', self.trade_id, 'side', side)
 
     def get_input_quantity(self):
         return conn.viewDbValue('trades', self.trade_id, 'input_quantity')
@@ -42,6 +45,8 @@ class Database:
     def get_leverage(self):
         return conn.viewDbValue('trades', self.trade_id, 'leverage')
 
+    def set_trade_record_id(self, trade_record_id):
+        conn.updateTableValue('trades', self.trade_id, 'trade_record_id', trade_record_id)
 
     # # strategy table:
 
@@ -86,9 +91,9 @@ class Database:
 
     # # trade_records table:
 
-    def create_trade_record(self, trade_record_id_input, side):
+    def create_trade_record(self, trade_record_id, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time):
         self.trade_record_id = trade_record_id_input
-        return conn.create_trade_record(trade_record_id_input, self.symbol_pair, 0, 0, 0, 0, 0, 0, 0, side, 0)
+        return conn.create_trade_record(trade_record_id, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time)
 
     def set_entry_price(self, entry_price_input):
         return conn.updateTableValue('trade_records', self.trade_record_id, 'entry_price', entry_price_input)

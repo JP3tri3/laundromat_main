@@ -2,6 +2,7 @@ import sys
 sys.path.append("..")
 
 from database.database import Database
+from api.bybit_api import Bybit_Api
 
 symbol = None
 symbolPair = None
@@ -13,10 +14,10 @@ class Calc:
         self.api = Bybit_Api()
         self.db = Database()
 
-
-    def calcFees(self, market_type, inputQuantity):
-        return (inputQuantity) * 0.00075 if (market_type == "Market") \
-            else (inputQuantity) * 0.00025
+    def calcFees(self, market_type):
+        input_quantity = self.db.get_input_quantity()
+        return (input_quantity) * 0.00075 if (market_type == "Market") \
+            else (input_quantity) * 0.00025
 
     def calcLastGain(self, index):
         total = self.api.lastProfitLoss(index)

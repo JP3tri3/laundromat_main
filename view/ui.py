@@ -1,17 +1,14 @@
 import sys
 sys.path.append("..")
-import database.database as db
+from database.database import Database
 import controller.comms as comms
 from api.bybit_api import Bybit_Api
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
 from model.calc import Calc
-import sql_connector as conn
+import database.sql_connector as conn
 
 class Ui:
-
-    # def __init__(self):
-    #     return
 
     def start(self):
         flag = True
@@ -20,7 +17,7 @@ class Ui:
         leverage = 5
         inputQuantity = 100 * leverage
         data_name = ''
-        trade_id = 'bybit_btcusd_manual'
+        trade_id = 'bybit_manual'
 
         while (flag == True):
             symbol_pair = input("Enter Symbol: ").upper()
@@ -30,20 +27,19 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbol_pair == "BTCUSD"):
-            id_name = 'bybit_btcusd_manual'
-            conn.updateTradeValues(id_name, 'BTC', 'BTCUSD', 0, 0.50, leverage, inputQuantity, data_name)
+            conn.updateTradeValues(trade_id, 'manual', 'BTC', 'BTCUSD',  0, 0.50, leverage, inputQuantity, 'empty', 0, 0, 0)
         elif (symbol_pair == "ETHUSD"):
             id_name = 'bybit_ethusd_manual'
-            conn.updateTradeValues(id_name, 'ETH', 'ETHUSD', 1, 0.05, leverage, inputQuantity, data_name)
+            conn.updateTradeValues(trade_id, 'manual','ETH', 'ETHUSD', 1, 0.05, leverage, inputQuantity, 'empty', 0, 0, 0)
 
 
         self.api = Bybit_Api()
         self.orders = Orders()
         self.sl = Stop_Loss()
-        self.calc = Calc(trade_id)
+        self.calc = Calc()
 
         self.inputOptions(symbol_pair)
-        self.startMenu(symbol_pair, id_name)
+        self.startMenu(symbol_pair, trade_id)
 
     def inputOptions(self, symbol_pair):
         print("")
@@ -73,9 +69,9 @@ class Ui:
         print("Change Currency: change")
         print("Exit: 'exit'")
 
-    def startMenu(self, symbol_pair, id_name):
+    def startMenu(self, symbol_pair, trade_id):
         flag = True
-        input_quantity = conn.viewDbValue('trades', id_name, 'input_quantity')
+        input_quantity = conn.viewDbValue('trades', trade_id, 'input_quantity')
 
         while(flag == True):
 
@@ -129,10 +125,10 @@ class Ui:
                 symbol.activePositionCheck()
 
             elif(taskInput == "test"):
-                print(self.api.symbol_pair())
+                print(self.orders.activeOrderCheck())
 
             elif(taskInput == "test1"):
-                print(self.api.lastPrice())
+                print(self.orders.activePositionCheck())
 
             elif(taskInput == "test2"):
                 print(self.api.closedProfitLoss())

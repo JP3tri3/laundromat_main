@@ -11,12 +11,16 @@ import datetime
 import asyncio
 
 leverage = 5
+active = False
 symbol_pair = 'BTCUSD'
 input_quantity = 500
 strat_id = '1_min'
 trade_id = 'bybit_auto_1'
 vwap_margin_neg = -10.5
 vwap_margin_pos = 10.5
+
+def get_active():
+    return active
 
 def get_trade_id():
     return trade_id

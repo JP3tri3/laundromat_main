@@ -33,9 +33,10 @@ class Strategy:
         global last_trend
 
         new_trend = ""
+        strat_kv_dict = self.db.get_strat_values()
+        last_Candle_vwap = strat_kv_dict['last_candle_vwap']
+        active_trend = strat_kv_dict['active_trend']
         
-        last_Candle_vwap = self.db.get_last_vwap()
-        active_trend = self.db.get_active_trend()
 
         if (last_Candle_vwap != current_vwap):
             last_vwap = current_vwap
@@ -62,16 +63,18 @@ class Strategy:
                     self.db.set_new_trend(new_trend)
 
             self.db.set_new_trend(new_trend)
-            last_trend = self.db.get_new_trend()
+            last_trend = new_trend
             self.db.set_last_trend(last_trend)
+
 
     def vwapCrossStrategy(self):
         self.determineVwapTrend()
-        new_trend = self.db.get_new_trend()
+        strat_kv_dict = self.db.get_strat_values()
+        new_trend = strat_kv_dict['new_trend']
         self.db.set_new_trend('null')
-        last_candle_wt1 = self.db.get_wt1()
-        last_candle_wt2 = self.db.get_wt2()
-        active_trend = self.db.get_active_trend()
+        last_candle_wt1 = strat_kv_dict['wt1']
+        last_candle_wt2 = strat_kv_dict['wt2']
+        active_trend = strat_kv_dict['active_trend']
 
         if (new_trend != 'null') and (new_trend != active_trend):
             if (new_trend == 'cross_up') or (new_trend == 'cross_down'):

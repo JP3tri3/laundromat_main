@@ -1,18 +1,20 @@
 import sys
 sys.path.append("..")
-import database.database as db
+from database.database import Database
 import config
 import bybit
-import sql_connector as conn
 
 class Bybit_Api():
 
-    def __init__(self, trade_id_input):
+    def __init__(self):
 
-        self.trade_id = trade_id_input
+        self.db = Database()
         self.client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY, api_secret=config.BYBIT_TESTNET_API_SECRET)
-        self.symbol_pair = conn.viewDbValue('trades', self.trade_id, 'symbol_pair')
-        self.key_input = conn.viewDbValue('trades', self.trade_id, 'key_input')
+        self.trades_kv_dict = self.db.get_trade_values()
+        self.symbol_pair = self.trades_kv_dict['symbol_pair']
+        self.key_input = self.trades_kv_dict['key_input']
+        self.symbol = self.trades_kv_dict['symbol']
+        self.leverage = self.trades_kv_dict['leverage']
 
     def getKeyInput(self):
         return self.key_input
@@ -24,8 +26,6 @@ class Bybit_Api():
         print(myBalance)
 
 #symbol:
-    def getSymbolPair(self):
-        return db.getSymbolPair()
 
     def symbolInfoResult(self):
         info = self.client.Market.Market_symbolInfo().result()
@@ -39,7 +39,7 @@ class Bybit_Api():
 
     def priceInfo(self):
         keys = self.symbolInfoResult()
-        keyInfo = keys[db.getKeyInput()]
+        keyInfo = keys[self.key_input]
 
         lastPrice = keyInfo['last_price']
         markPrice = keyInfo['mark_price']
@@ -47,19 +47,19 @@ class Bybit_Api():
         indexPrice = keyInfo['index_price']
 
         print("")
-        print("Last Price: " + symbol_pair + " " + lastPrice)
-        print("Mark Price: " + symbol_pair + " " + markPrice)
-        print("Ask Price: " + symbol_pair + " " + askPrice)
-        print("Index Price: " + symbol_pair + " " + indexPrice)
+        print("Last Price: " + self.symbol_pair + " " + lastPrice)
+        print("Mark Price: " + self.symbol_pair + " " + markPrice)
+        print("Ask Price: " + self.symbol_pair + " " + askPrice)
+        print("Index Price: " + self.symbol_pair + " " + indexPrice)
         print("")
 
     def lastPrice(self):
         keys = self.symbolInfoResult()
-        return float(keys[db.getKeyInput()]['last_price'])
+        return float(keys[self.key_input]['last_price'])
 
 #order:
     def getOrder(self):
-        activeOrder = self.client.Order.Order_query(symbol=db.getSymbolPair()).result()
+        activeOrder = self.client.Order.Order_query(symbol=self.symbol_pair).result()
         order = activeOrder[0]['result']
         return(order)
 
@@ -74,13 +74,13 @@ class Bybit_Api():
 
     def cancelAllOrders(self):
         print("Cancelling All Orders...")
-        self.client.Order.Order_cancelAll(symbol=symbol).result()
+        self.client.Order.Order_cancelAll(symbol=self.symbol).result()
 
 
 #position:
     def getPositionResult(self):
         positionResult = self.client.Positions.Positions_myPosition(
-            symbol=db.getSymbolPair()).result()
+            symbol=self.symbol_pair).result()
         return positionResult[0]['result']
 
     def getPositionSide(self):
@@ -108,12 +108,12 @@ class Bybit_Api():
 
         try:
             if(order_type == 'Market'):
-                print(f"sending order {side} {db.getSymbolPair()} {order_type} {stop_loss}")
-                order = self.client.Order.Order_new(side=side, symbol=db.getSymbolPair(), order_type="Market",
+                print(f"sending order {side} {self.symbol_pair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
                                             qty=inputQuantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
-                print(f"sending order {price} - {side} {db.getSymbolPair()} {order_type} {stop_loss}")
-                order = self.client.Order.Order_new(side=side, symbol=db.getSymbolPair(), order_type="Limit",
+                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
                                             qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
@@ -123,7 +123,7 @@ class Bybit_Api():
         return order
 
     def changeOrderPrice(self, price):
-        order = self.client.Order.Order_replace(symbol=db.getSymbolPair(), order_id=str(self.getOrderId()), p_r_price=str(price)).result()
+        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=str(self.getOrderId()), p_r_price=str(price)).result()
         return order
 
 #Leverage
@@ -133,18 +133,18 @@ class Bybit_Api():
         return position['leverage']
 
     def setLeverage(self):
-        setLeverage = self.client.Positions.Positions_saveLeverage(symbol=db.getSymbolPair(), leverage=str(db.getLeverage())).result()
-        print("Leverage set to: " + str(db.getLeverage()))
+        setLeverage = self.client.Positions.Positions_saveLeverage(symbol=self.symbol_pair, leverage=str(self.leverage)).result()
+        print("Leverage set to: " + str(self.leverage))
         return setLeverage    
 #stop_loss
 
     def changeStopLoss(self, slAmount):
         self.client.Positions.Positions_tradingStop(
-            symbol=db.getSymbolPair(), stop_loss=str(slAmount)).result()
+            symbol=self.symbol_pair, stop_loss=str(slAmount)).result()
 
 #Profit & Loss
     def closedProfitLoss(self):
-        records = self.client.Positions.Positions_closePnlRecords(symbol=db.getSymbolPair()).result()
+        records = self.client.Positions.Positions_closePnlRecords(symbol=self.symbol_pair).result()
         return records[0]['result']['data']
 
     def closedProfitLossQuantity(self, index):

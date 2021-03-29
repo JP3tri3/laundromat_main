@@ -4,24 +4,20 @@ sys.path.append("..")
 from database.database import Database
 from api.bybit_api import Bybit_Api
 from model.calc import Calc
-from model.orders import Orders
 import controller.comms as comms
 
 
 class Stop_Loss:
 
-    # trade_id = None
     percent_level = 0
     level = 0
     stop_loss = 0
 
-    def __init__(self, trade_id_input):
+    def __init__(self):
 
-        self.trade_id = trade_id_input
-
-        api = Bybit_Api(self.trade_id)
-        calc = Calc(self.trade_id)
-        orders = Orders(self.trade_id)
+        self.api = Bybit_Api()
+        self.calc = Calc()
+        self.db = Database()
 
     def changeStopLoss(self, slAmount):
         self.api.changeStopLoss(slAmount)
@@ -116,7 +112,8 @@ class Stop_Loss:
                 if (level == 0) or (level > stop_loss):                
                     level = stop_loss    
                     self.changeStopLoss(stop_loss)
-                    db.setStopLoss(stop_loss)
+                    #TO DO
+                    self.db.set_stop_loss(stop_loss)
                     db.setTotalPercentGain(percentGained)
 
         else:

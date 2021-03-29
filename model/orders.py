@@ -12,24 +12,37 @@ import asyncio
 class Orders:
     
     def __init__(self):
-        self.trade_record_id = 0
         self.atr = None
+        self.total_profit_loss = 0
 
         self.api = Bybit_Api()
         self.calc = Calc()
         self.db = Database()
 
-    def createTradeRecord(self, side_input):
-        symbol_pair = self.db.get_symbol_pair()
-        global trade_record_id
-        self.trade_record_id = self.trade_record_id + 1
-        print("Creating new Trade Record")
-        return self.db.create_trade_record(self.trade_record_id, side_input)
+    def logClosingDetails(self):
+        global total_profit_loss
+
+        trade_kv_dict = self.db.get_trade_vales()
+
+        symbol_pair = trade_kv_dict['symbol_pair']
+        entry_price = calc.calcEntryPrice()
+        exit_price = calc.calcExitPrice()
+        stop_loss = trade_kv_dict['stop_loss']
+        percent_gain = trade_kv_dict['percent_gain']
+        side =  trade_kv_dict['side']
+        total_gain = calc.calcTotalGain()
+        total_coin = calc.calcTotalCoin()
+        time = str(comms.timeStamp())
+
+        total_number_trades = trade_kv_dict['trade_record_id'] + 1
+        self.db.set_trade_record_id(total_number_trades)
+        self.total_profit_loss += total_gain 
+
+        conn.createTradeRecord(trade_id_input, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, total_gain, total_coin, self.total_profit_loss, time)
 
     def activeOrderCheck(self):
         order = self.api.getOrder()
         return 0 if (order == []) else 1
-
 
     def activePositionCheck(self):
         try:
@@ -82,8 +95,7 @@ class Orders:
         percentGainedLock = 0.0
         percentLevel = 0.0
         flag = False
-
-        self.createTradeRecord(side_input)
+        self.db.set_side(side_input)
 
         if (self.activeOrderCheck() == 1):
             print("Current Active Order...")
@@ -93,16 +105,14 @@ class Orders:
             print("Create Order Cancelled")
         else:
 
-            initialStopLoss = (self.api.lastPrice() - (2*self.calc.calcOnePercent())) if (side == 'Buy') \
+            initialStopLoss = (self.api.lastPrice() - (2*self.calc.calcOnePercent())) if (side_input == 'Buy') \
                 else (self.api.lastPrice() + (2*self.calc.calcOnePercent()))
-            print("onePercentCheck: " + str(self.calc.calcOnePercent()))
+
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")
                     entry_price = self.calc.calcLimitPriceDifference(side_input)
                     self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side_input), order_type=order_type, side=side_input, inputQuantity=self.db.get_input_quantity(), stop_loss=initialStopLoss, reduce_only=False)
-                    
-                    self.db.set_side(side)
 
                     if(order_type == 'Limit'):
                         print("")
@@ -117,7 +127,6 @@ class Orders:
                         print("Order Failed")
                     else:
                         entry_price = float(self.api.getActivePositionEntryPrice())
-                        self.db.set_entry_price(entry_price)
                         print("")
                         print("Order Successful")
                         print("Entry Price: " + str(entry_price))
