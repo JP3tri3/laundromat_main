@@ -12,7 +12,7 @@ mycursor = db.cursor()
 
 # # create table:
 # mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 float UNSIGNED, wt2 float UNSIGNED, last_candle_high float UNSIGNED, last_candle_low float UNSIGNED, last_candle_vwap float UNSIGNED, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
-# mycursor.execute("CREATE TABLE trade (id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT UNSIGNED, limit_price_difference float UNSIGNED, leverage INT UNSIGNED, input_quantity INT UNSIGNED, data_name VARCHAR(50))")
+# mycursor.execute("CREATE TABLE trade (id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT UNSIGNED, limit_price_difference float UNSIGNED, leverage INT UNSIGNED, input_quantity INT UNSIGNED, strat_id VARCHAR(50))")
 # mycursor.execute("CREATE TABLE trade_records (id INT UNSIGNED, symbol_pair VARCHAR(50), entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, dollar_gain FLOAT UNSIGNED, coin_gain FLOAT UNSIGNED, number_of_trades INT UNSIGNED, side VARCHAR(8), total_p_l FLOAT UNSIGNED)")
 
 # # describe table details:
@@ -29,7 +29,7 @@ mycursor = db.cursor()
 # mycursor.execute("ALTER TABLE trade_records ADD side VARCHAR(8)")
 # db.commit()
 
-# mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_btcusd_auto_1', 'empty', 'empty', 0, 0.0, 0, 0, 'empty'))
+# mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_1', 'empty', 'empty', 0, 0.0, 0, 0, 'empty'))
 # db.commit()
 # mycursor.execute("SELECT * FROM Strategy")
 
@@ -78,7 +78,7 @@ def updateStratValues(id_name, wt1, wt2, last_candle_high, last_candle_low, last
 
 def updateTradeValues(id_name, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, data_name):
     try:
-        query = "UPDATE trades SET symbol='" +str(symbol)+ "', symbol_pair='" +str(symbol_pair)+ "', key_input=" +str(key_input)+ ", limit_price_difference=" +str(limit_price_difference)+ ", leverage=" +str(leverage)+ ", input_quantity=" +str(input_quantity)+ ", data_name='" +str(data_name)+ "' WHERE id='" +str(id_name)+ "'" 
+        query = "UPDATE trades SET symbol='" +str(symbol)+ "', symbol_pair='" +str(symbol_pair)+ "', key_input=" +str(key_input)+ ", limit_price_difference=" +str(limit_price_difference)+ ", leverage=" +str(leverage)+ ", input_quantity=" +str(input_quantity)+ ", strat_id='" +str(data_name)+ "' WHERE id='" +str(id_name)+ "'" 
         print(query)
         mycursor.execute(query)
         db.commit()
@@ -86,7 +86,7 @@ def updateTradeValues(id_name, symbol, symbol_pair, key_input, limit_price_diffe
         print("Failed to update record to database: {}".format(error))
 
 ## Create
-def createTradeRecord(id_name, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l):
+def create_trade_record(id_name, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l):
     try:
         query = "INSERT INTO trade_records () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         print(query)
@@ -113,7 +113,44 @@ def viewDbValue(table_name, id_name, column_name):
         result = mycursor.fetchall()
         return result[0][0]
     except mysql.connector.Error as error:
-        print("Failed to update record to database: {}".format(error))
+        print("Failed to retrieve record from database: {}".format(error))
+
+## Get Table Row
+def get_table_pair(table_name, id_name):
+    try:
+        kv_dict = {}
+        column_query = "SHOW COLUMNS FROM " + str(table_name)
+        column_name_result = mycursor.execute(column_query)
+        column_name_list = mycursor.fetchall()
+
+        row_query = "Select * FROM " + str(table_name) + " WHERE id = '" + str(id_name) + "' LIMIT 0,1"
+        row_result = mycursor.execute(row_query)
+        row_list = mycursor.fetchall()
+        row_list = row_list[0]
+
+        for x in range(len(row_list)):        
+            kv_pair = [(column_name_list[x][0], row_list[x])]
+            kv_dict.update(kv_pair)
+
+        return(kv_dict)
+
+    except mysql.connector.Error as error:
+        print("Failed to retrieve record from database: {}".format(error))
+
+## Get Table Columns
+def get_table_column_names(table_name):
+    try:
+
+
+        for x in range(len(returnResult)):
+            column_name_list.append(returnResult[x][0])
+
+        return(column_name_list)
+
+
+    except mysql.connector.Error as error:
+        print("Failed to retrieve record from database: {}".format(error))    
+
 
 def clearAllTableValues():
     updateTradeValues('bybit_btcusd_manual', 'empty', 'empty', 0, 0, 0, 0, 'empty')
@@ -135,3 +172,8 @@ def clearAllTableValues():
 # clearAllTableValues()
 
 # createTradeRecord(0, 'empty', 0, 0, 0, 0, 0, 0, 0, 'empty', 0)
+
+# test = viewTableRow('trades', 'bybit_btcusd_manual')
+
+# print(type(test))
+# print(test[0][2])

@@ -81,7 +81,7 @@ class Strategy:
                     comms.logClosingDetails()
 
                 if ((new_trend == 'cross_up') and (last_candle_wt1 < 5) and (last_candle_wt2 < 5)) or (new_trend == 'cross_down') and (last_candle_wt1 > -5) and (last_candle_wt2 > -5):
-                    input_quantity = conn.viewDbValue('trades', trade_id, 'input_quantity')
+                    input_quantity = self.db.get_input_quantity()
                     if (new_trend == 'cross_up'):
                         print("Opening new Long:")
                         self.orders.createOrder(side='Buy', order_type='Market', inputQuantity=input_quantity)
@@ -90,8 +90,8 @@ class Strategy:
                         print("Opening new Short:")
                         self.orders.createOrder(side='Sell', order_type='Market', inputQuantity=input_quantity)
 
-                    conn.updateTradeValues('strategy', strat_id, 'active_trend', new_trend)
-                    conn.updateTradeValues('strategy', strat_id, 'active_position', 'null')
+                    self.db.set_active_trend(new_trend)
+                    self.db.set_active_position('null')
                     #process Stop Loss:
                     print("Checking for stop loss...")
                     flag = True
@@ -111,7 +111,7 @@ class Strategy:
                                 print("Percent Gained: " +
                                             str(self.calc.calcPercentGained()))
                                 print("Last Price: " + str(self.api.lastPrice()))
-                        elif(conn.viewDbValue('strategy', strat_id, 'active_position') == 'change'):
+                        elif(self.db.get_active_position == 'change'):
                             flag = False
 
                         #process SL if position is active
@@ -122,10 +122,9 @@ class Strategy:
                             else:
                                 print("Position Closed")
                                 print("")
-                                conn.updateTradeValues('strategy', strat_id, 'active_trend', 'null')
-                                comms.logClosingDetails(trade_id)
+                                self.db.set_active_trend('null')
+                                comms.logClosingDetails()
                                 flag = False
 
-                
 
 #check for order of last_trend verse new_trend

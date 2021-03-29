@@ -1,7 +1,7 @@
 import time
 import sys
 sys.path.append("..")
-import database.database as db
+from database.database import Database
 from api.bybit_api import Bybit_Api
 from model.calc import Calc
 from model.orders import Orders

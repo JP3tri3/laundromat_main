@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-import sql_connector as conn
+
 from database.database import Database
 
 symbol = None

@@ -1,7 +1,7 @@
 import json
 import sys
 sys.path.append("..")
-import database.database as db
+from database.database import Database
 from api.bybit_api import Bybit_Api
 import controller.comms as comms
 from model.calc import Calc
@@ -13,18 +13,18 @@ class Orders:
     
     def __init__(self):
         self.trade_record_id = 0
-        self.symbol = conn.viewDbValue('trades', self.trade_id, 'symbol')
-        self.symbol_pair = conn.viewDbValue('trades', self.trade_id, 'symbol_pair')
         self.atr = None
 
         self.api = Bybit_Api()
         self.calc = Calc()
+        self.db = Database()
 
-    def initiateCreateTradeRecord(self):
+    def createTradeRecord(self, side_input):
+        symbol_pair = self.db.get_symbol_pair()
         global trade_record_id
         self.trade_record_id = self.trade_record_id + 1
-
-        conn.createTradeRecord(self.trade_record_id, self.symbol_pair, 0, 0, 0, 0, 0, 0, 0, 'empty', 0)
+        print("Creating new Trade Record")
+        return self.db.create_trade_record(self.trade_record_id, side_input)
 
     def activeOrderCheck(self):
         order = self.api.getOrder()
@@ -74,7 +74,7 @@ class Orders:
             else:
                 flag = True
 
-    def createOrder(self, side, order_type, inputQuantity):
+    def createOrder(self, side_input, order_type, inputQuantity):
         global level
         global percentLevel
         global percentGainedLock
@@ -82,6 +82,8 @@ class Orders:
         percentGainedLock = 0.0
         percentLevel = 0.0
         flag = False
+
+        self.createTradeRecord(side_input)
 
         if (self.activeOrderCheck() == 1):
             print("Current Active Order...")
@@ -97,17 +99,16 @@ class Orders:
             while(flag == False):
                 if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
                     print("Attempting to place order...")
-                    entry_price = self.calc.calcLimitPriceDifference(side)
-                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side), order_type=order_type, side=side, inputQuantity=conn.viewDbValue('trades', trade_id, 'input_quantity'), stop_loss=initialStopLoss, reduce_only=False)
+                    entry_price = self.calc.calcLimitPriceDifference(side_input)
+                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side_input), order_type=order_type, side=side_input, inputQuantity=self.db.get_input_quantity(), stop_loss=initialStopLoss, reduce_only=False)
                     
-                    db.setSide(side)
-                    db.setEntryPrice(self.api.getActivePositionEntryPrice)
+                    self.db.set_side(side)
 
                     if(order_type == 'Limit'):
                         print("")
                         print("Retrieving Order ID...")
                         print("Order ID: " + str(self.api.getOrderId()))
-                        self.forceLimitOrder(side=side)
+                        self.forceLimitOrder(side=side_input)
                 else:
                     print("")
                     print("Confirming Order...")
@@ -116,6 +117,7 @@ class Orders:
                         print("Order Failed")
                     else:
                         entry_price = float(self.api.getActivePositionEntryPrice())
+                        self.db.set_entry_price(entry_price)
                         print("")
                         print("Order Successful")
                         print("Entry Price: " + str(entry_price))
