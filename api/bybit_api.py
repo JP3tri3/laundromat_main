@@ -1,120 +1,118 @@
 import sys
 sys.path.append("..")
-from database.database import Database
 import config
 import bybit
 
 class Bybit_Api():
 
-    def __init__(self):
+    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage):
 
-        self.db = Database()
-        self.client = bybit.bybit(test=True, api_key=config.BYBIT_TESTNET_API_KEY, api_secret=config.BYBIT_TESTNET_API_SECRET)
-        self.trades_kv_dict = self.db.get_trade_values()
-        self.symbol_pair = self.trades_kv_dict['symbol_pair']
-        self.key_input = self.trades_kv_dict['key_input']
-        self.symbol = self.trades_kv_dict['symbol']
-        self.leverage = self.trades_kv_dict['leverage']
+        self.client = bybit.bybit(test=True, api_key=api_key, api_secret=api_secret)
+        self.symbol = symbol
+        self.symbol_pair = symbol_pair
+        self.key_input = key_input
+        self.input_quantity = input_quantity
+        self.leverage = leverage
 
-    def getKeyInput(self):
+    def get_key_input(self):
         return self.key_input
 
-    def myWallet(self):
-        myWallet = self.client.Wallet.Wallet_getBalance(
-            coin=db.getSymbol()).result()
-        myBalance = myWallet[0]['result'][db.getSymbol()]['available_balance']
-        print(myBalance)
+    def my_wallet(self):
+        my_wallet = self.client.Wallet.Wallet_getBalance(
+            coin=symbol).result()
+        my_balance = my_wallet[0]['result'][symbol]['available_balance']
+        print(my_balance)
 
 #symbol:
 
-    def symbolInfoResult(self):
+    def symbol_info_result(self):
         info = self.client.Market.Market_symbolInfo().result()
         return(info[0]['result'])
 
-    def symbolInfoKeys(self):
-        infoKeys = self.symbolInfoResult()
-        return infoKeys[db.keyInput]
+    def symbol_info_keys(self):
+        infoKeys = self.symbol_info_result()
+        return infoKeys[key_input]
 
 #price:
 
-    def priceInfo(self):
-        keys = self.symbolInfoResult()
-        keyInfo = keys[self.key_input]
+    def price_info(self):
+        keys = self.symbol_info_result()
+        key_info = keys[self.key_input]
 
-        lastPrice = keyInfo['last_price']
-        markPrice = keyInfo['mark_price']
-        askPrice = keyInfo['ask_price']
-        indexPrice = keyInfo['index_price']
+        last_price = key_info['last_price']
+        mark_price = key_info['mark_price']
+        ask_price = key_info['ask_price']
+        index_price = key_info['index_price']
 
         print("")
-        print("Last Price: " + self.symbol_pair + " " + lastPrice)
-        print("Mark Price: " + self.symbol_pair + " " + markPrice)
-        print("Ask Price: " + self.symbol_pair + " " + askPrice)
-        print("Index Price: " + self.symbol_pair + " " + indexPrice)
+        print("Last Price: " + self.symbol_pair + " " + last_price)
+        print("Mark Price: " + self.symbol_pair + " " + mark_price)
+        print("Ask Price: " + self.symbol_pair + " " + ask_price)
+        print("Index Price: " + self.symbol_pair + " " + index_price)
         print("")
 
-    def lastPrice(self):
-        keys = self.symbolInfoResult()
+    def last_price(self):
+        keys = self.symbol_info_result()
         return float(keys[self.key_input]['last_price'])
 
 #order:
-    def getOrder(self):
-        activeOrder = self.client.Order.Order_query(symbol=self.symbol_pair).result()
-        order = activeOrder[0]['result']
+    def get_order(self):
+        active_order = self.client.Order.Order_query(symbol=self.symbol_pair).result()
+        order = active_order[0]['result']
         return(order)
 
-    def getOrderId(self):
+    def get_order_id(self):
         try:
-            order = self.getOrder()
-            orderId = order[0]['order_id']
+            order = self.get_order()
+            order_id = order[0]['order_id']
         except Exception as e:
             print("an exception occured - {}".format(e))
             return False
-        return orderId
+        return order_id
 
-    def cancelAllOrders(self):
+    def cancel_all_orders(self):
         print("Cancelling All Orders...")
         self.client.Order.Order_cancelAll(symbol=self.symbol).result()
 
 
 #position:
-    def getPositionResult(self):
-        positionResult = self.client.Positions.Positions_myPosition(
+    def get_position_result(self):
+        position_result = self.client.Positions.Positions_myPosition(
             symbol=self.symbol_pair).result()
-        return positionResult[0]['result']
+        return position_result[0]['result']
 
-    def getPositionSide(self):
+    def get_position_side(self):
         try:
-            positionResult = self.getPositionResult()
-            return positionResult['side']
+            position_result = self.get_position_result()
+            return position_result['side']
         except Exception as e:
             print("an exception occured - {}".format(e))   
             return 'null'     
 
-    def getPositionSize(self):
-        positionResult = self.getPositionResult()
-        return positionResult['size']
+    def get_position_size(self):
+        position_result = self.get_position_result()
+        return position_result['size']
 
-    def getPositionValue(self):
-        positionResult = self.getPositionResult()
-        return positionResult['position_value']
+    def get_position_value(self):
+        position_result = self.get_position_result()
+        return position_result['position_value']
 
-    def getActivePositionEntryPrice(self):
-        positionResult = self.getPositionResult()
-        return float(positionResult['entry_price'])
+    def get_active_position_entry_price(self):
+        position_result = self.get_position_result()
+        return float(position_result['entry_price'])
 
 #orders:
-    def placeOrder(self, price, order_type, side, inputQuantity, stop_loss, reduce_only):
+    def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
 
         try:
             if(order_type == 'Market'):
                 print(f"sending order {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
-                                            qty=inputQuantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=inputQuantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:
@@ -122,43 +120,135 @@ class Bybit_Api():
             return False
         return order
 
-    def changeOrderPrice(self, price):
-        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=str(self.getOrderId()), p_r_price=str(price)).result()
+    def change_order_price(self, price):
+        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=str(self.get_order_id()), p_r_price=str(price)).result()
         return order
 
 #Leverage
  
-    def getPositionLeverage(self):
-        position = self.getPositionResult()
+    def get_position_leverage(self):
+        position = self.get_position_result()
         return position['leverage']
 
-    def setLeverage(self):
-        setLeverage = self.client.Positions.Positions_saveLeverage(symbol=self.symbol_pair, leverage=str(self.leverage)).result()
+    def set_leverage(self):
+        set_leverage = self.client.Positions.Positions_saveLeverage(symbol=self.symbol_pair, leverage=str(self.leverage)).result()
         print("Leverage set to: " + str(self.leverage))
-        return setLeverage    
+        return set_leverage    
 #stop_loss
 
-    def changeStopLoss(self, slAmount):
+    def change_stop_loss(self, sl_amount):
         self.client.Positions.Positions_tradingStop(
-            symbol=self.symbol_pair, stop_loss=str(slAmount)).result()
+            symbol=self.symbol_pair, stop_loss=str(sl_amount)).result()
 
 #Profit & Loss
-    def closedProfitLoss(self):
+    def closed_profit_loss(self):
         records = self.client.Positions.Positions_closePnlRecords(symbol=self.symbol_pair).result()
         return records[0]['result']['data']
 
-    def closedProfitLossQuantity(self, index):
-        recordResults = self.closedProfitLoss()
-        return recordResults[index]['closed_size']
+    def closed_profit_lossQuantity(self, index):
+        record_result = self.closed_profit_loss()
+        return record_result[index]['closed_size']
 
     def lastProfitLoss(self, index):
-        recordResult = self.closedProfitLoss()
-        return recordResult[index]['closed_pnl']
+        record_result = self.closed_profit_loss()
+        return record_result[index]['closed_pnl']
 
-    def lastExitPrice(self, index):
-        recordResult = self.closedProfitLoss()
-        return recordResult[index]['avg_exit_price']
+    def last_exit_price(self, index):
+        record_result = self.closed_profit_loss()
+        return record_result[index]['avg_exit_price']
 
-    def lastEntryPrice(self, index):
-        recordResult = self.closedProfitLoss()
-        return recordResult[index]['avg_entry_price']
+    def last_entry_price(self, index):
+        record_result = self.closed_profit_loss()
+        return record_result[index]['avg_entry_price']
+
+    #Calc Entry_Exit
+
+    def calc_last_gain(self, index):
+        total = self.lastProfitLoss(index)
+        exit_price = float(self.calc_exit_price())
+        return round(float('%.10f' % total) * exit_price, 3)
+
+    def calc_total_gain(self):
+        total = 0
+        index = 0
+        total_quantity = 0
+        flag = False
+
+        while(flag == False):
+            total_quantity += self.closed_profit_lossQuantity(index)
+            total += self.calc_last_gain(index)
+
+            if total_quantity < input_quantity:
+                index += 1
+            else:
+                flag = True
+
+        return total
+
+    def get_total_coin(self):
+        index = 0
+        total_quantity = 0
+        total = 0.0
+        flag = False
+
+        while(flag == False):
+            amount = float(self.lastProfitLoss(index))
+            total += amount
+            total_quantity += self.closed_profit_lossQuantity(index)
+
+            if total_quantity < input_quantity:
+                index += 1
+            else:
+                flag = True
+
+        return ('%.10f' % total)
+
+    def get_entry_price(self):
+        index = 0
+        divisible = 1
+        last_entry_price = self.last_entry_price(index)
+        entry_price = 0
+        total_quantity = 0
+
+        flag = False
+
+        while(flag == False):
+            total_quantity += self.closed_profit_lossQuantity(index)
+            entry_price += last_entry_price
+
+            if total_quantity < input_quantity:
+                index += 1
+                divisible += 1
+                print("Index = " + str(index))
+            else:
+                flag = True
+
+        if (index == 0):
+            return entry_price
+        else:
+            return (entry_price / divisible)
+
+
+    def get_exit_price(self):
+        index = 0
+        divisible = 1
+        last_exit_price = self.last_exit_price(index)
+        exit_price = 0
+        total_quantity = 0
+        flag = False
+
+        while(flag == False):
+            total_quantity += self.closed_profit_lossQuantity(index)
+            exit_price += lastexit_price
+
+            if total_quantity < input_quantity:
+                index += 1
+                divisible += 1
+                print("Index = " + str(index))
+            else:
+                flag = True
+        
+        if (index == 0):
+            return exit_price
+        else:
+            return (exit_price / divisible)

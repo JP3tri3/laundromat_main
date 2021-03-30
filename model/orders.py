@@ -1,60 +1,66 @@
 import json
 import sys
 sys.path.append("..")
-from database.database import Database
 from api.bybit_api import Bybit_Api
 import controller.comms as comms
-from model.calc import Calc
+from model.calc import Calc as calc
 import time
 import asyncio
 
 
 class Orders:
     
-    def __init__(self):
+    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference):
         self.atr = None
         self.total_profit_loss = 0
+        self.limit_price_difference = limit_price_difference
+        self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage)
 
-        self.api = Bybit_Api()
-        self.calc = Calc()
-        self.db = Database()
+    def log_closing_details(self, trade_record_id, symbol_pair, stop_loss, percent_gain, side, time):
 
-    def logClosingDetails(self):
         global total_profit_loss
 
-        trade_kv_dict = self.db.get_trade_vales()
+        # trade_kv_dict = db().get_trade_values()
 
-        symbol_pair = trade_kv_dict['symbol_pair']
-        entry_price = calc.calcEntryPrice()
-        exit_price = calc.calcExitPrice()
-        stop_loss = trade_kv_dict['stop_loss']
-        percent_gain = trade_kv_dict['percent_gain']
-        side =  trade_kv_dict['side']
-        total_gain = calc.calcTotalGain()
-        total_coin = calc.calcTotalCoin()
-        time = str(comms.timeStamp())
+        # symbol_pair = trade_kv_dict['symbol_pair']
+        entry_price = self.api.get_entry_price()
+        exit_price = self.api.get_exit_price()
+        # stop_loss = trade_kv_dict['stop_loss']
+        # percent_gain = trade_kv_dict['percent_gain']
+        # side =  trade_kv_dict['side']
+        total_gain = self.api.calc_total_gain()
+        total_coin = self.api.get_total_coin()
+        time = str(comms.time_stamp())
+        trade_record_id = trade_record_id + 1
 
-        total_number_trades = trade_kv_dict['trade_record_id'] + 1
-        self.db.set_trade_record_id(total_number_trades)
-        self.total_profit_loss += total_gain 
+        # db().set_trade_record_id(total_number_trades)
+        self.total_profit_loss += total_gain
 
-        conn.createTradeRecord(trade_id_input, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, total_gain, total_coin, self.total_profit_loss, time)
+        kv_dict = {'trade_record_id': trade_record_id, 'symbol_pair': symbol_pair, 'entry_price': entry_price, 'exit_price': exit_price, 'stop_loss': stop_loss, 'percent_gain': percent_gain, 'side': side, 'total_gain': total_gain, 'total_coin': total_coin, 'time': time}
 
-    def activeOrderCheck(self):
-        order = self.api.getOrder()
+        # for x in range(len(row_list)):        
+        #     kv_pair = [(column_name_list[x][0], row_list[x])]
+        #     kv_dict.update(kv_pair)
+
+        # conn.create_trade_record(trade_id_input, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, total_gain, total_coin, self.total_profit_loss, time)
+
+        return kv_dict
+
+    def active_order_check(self):
+        order = self.api.get_order()
         return 0 if (order == []) else 1
 
-    def activePositionCheck(self):
+    def active_position_check(self):
         try:
-            positionValue = self.api.getPositionValue()
-            return 1 if (positionValue != '0') else 0
+            position_value = self.api.get_position_value()
+            return 1 if (position_value != '0') else 0
         except Exception as e:
             print("Active Position Check Exception Occured...")
             print("Trying again...")
             time.sleep(2)
-            self.activePositionCheck()
+            self.active_position_check()
 
-    def inputAtr(self):
+    def input_atr(self):
         global atr
         flag = False
         print("")
@@ -66,20 +72,20 @@ class Orders:
             else:
                 print("Invalid Input, try again...")
 
-    def forceLimitOrder(self, side):
+    def force_limit_order(self, side):
         flag = False
-        currentPrice = self.api.lastPrice()
-        price = self.calc.calcLimitPriceDifference(side=side)
+        current_price = api.last_price()
+        price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
 
         while(flag == False):
-            if (self.activeOrderCheck() == 1):
-                if (self.api.lastPrice() != currentPrice) and (self.api.lastPrice() != price):
-                    print("LastPrice: " + str(self.api.lastPrice()))
-                    print("currentPrice: " + str(currentPrice))
+            if (self.active_order_check() == 1):
+                if (self.api.last_price() != current_price) and (self.api.last_price() != price):
+                    print("last_price: " + str(self.api.last_price()))
+                    print("current_price: " + str(current_price))
                     print("price: " + str(price))
-                    currentPrice = self.api.lastPrice()
-                    price = self.calc.calcLimitPriceDifference(side=side)
-                    self.api.changeOrderPrice(price)
+                    current_price = self.api.last_price()
+                    price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
+                    self.api.change_order_price(price)
                     print("Order Price Updated: " + str(price))
                     print("")
                 time.sleep(2)
@@ -87,117 +93,117 @@ class Orders:
             else:
                 flag = True
 
-    def createOrder(self, side_input, order_type, inputQuantity):
+    def create_order(self, side_input, order_type, input_quantity):
         global level
-        global percentLevel
-        global percentGainedLock
+        global percent_level
+        global percent_gained_lock
 
-        percentGainedLock = 0.0
-        percentLevel = 0.0
+        percent_gained_lock = 0.0
+        percent_level = 0.0
         flag = False
-        self.db.set_side(side_input)
 
-        if (self.activeOrderCheck() == 1):
+        if (self.active_order_check() == 1):
             print("Current Active Order...")
             print("Create Order Cancelled")
-        elif (self.activePositionCheck() == 1):
+        elif (self.active_position_check() == 1):
             print("Current Active Position...")
             print("Create Order Cancelled")
         else:
-
-            initialStopLoss = (self.api.lastPrice() - (2*self.calc.calcOnePercent())) if (side_input == 'Buy') \
-                else (self.api.lastPrice() + (2*self.calc.calcOnePercent()))
+            one_percent = calc().calc_one_percent(self.leverage, self.api.last_price())
+            initial_stop_loss = (api.last_price() - (2*one_percent)) if (side_input == 'Buy') \
+                else (self.api.last_price() + (2*one_percent))
 
             while(flag == False):
-                if ((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
+                if ((self.active_order_check() == 0) and (self.active_position_check() == 0)):
                     print("Attempting to place order...")
-                    entry_price = self.calc.calcLimitPriceDifference(side_input)
-                    self.api.placeOrder(price=self.calc.calcLimitPriceDifference(side=side_input), order_type=order_type, side=side_input, inputQuantity=self.db.get_input_quantity(), stop_loss=initialStopLoss, reduce_only=False)
+                    entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
+                    self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=db().get_input_quantity(), stop_loss=initial_stop_loss, reduce_only=False)
 
                     if(order_type == 'Limit'):
                         print("")
                         print("Retrieving Order ID...")
-                        print("Order ID: " + str(self.api.getOrderId()))
-                        self.forceLimitOrder(side=side_input)
+                        print("Order ID: " + str(self.api.get_order_id()))
+                        self.force_limit_order(side=side_input)
                 else:
                     print("")
                     print("Confirming Order...")
                     
-                    if((self.activeOrderCheck() == 0) and (self.activePositionCheck() == 0)):
+                    if((self.active_order_check() == 0) and (self.active_position_check() == 0)):
                         print("Order Failed")
                     else:
-                        entry_price = float(self.api.getActivePositionEntryPrice())
+                        entry_price = float(self.api.get_active_position_entry_price())
                         print("")
                         print("Order Successful")
                         print("Entry Price: " + str(entry_price))
-                        print("Initial Stop Loss: " + str(initialStopLoss))
+                        print("Initial Stop Loss: " + str(initial_stop_loss))
                         print("")
                         flag = True
 
-    def closePositionSl(self):
-        flag = True
-        stopLossInputPrice = self.api.lastPrice()
-        print("Forcing Close")
-        self.api.changeStopLoss(self.api.lastPrice() - float(2))
-        time.sleep(5)
+    # def close_position_sl(self):
+    #     flag = True
+    #     stop_loss_input_price = self.api.last_price()
+    #     print("Forcing Close")
+    #     self.api.change_stop_loss(self.api.last_price() - float(2))
+    #     time.sleep(5)
 
-        while(flag == True):
-            if(self.activePositionCheck() == 1):
-                if (self.api.lastPrice() > stopLossInputPrice):
-                    stopLossInputPrice = self.api.lastPrice()
-                    print("")
-                    print("Forcing Close")
-                    comms.timeStamp()
-                    self.api.changeStopLoss(self.api.lastPrice() - float(2))
-                    time.sleep(5)
-            else:
-                print("Position Closed")
-                flag = False
+    #     while(flag == True):
+    #         if(self.active_position_check() == 1):
+    #             if (self.api.last_price() > stop_loss_input_price):
+    #                 stop_loss_input_price = self.api.last_price()
+    #                 print("")
+    #                 print("Forcing Close")
+    #                 comms.time_stamp()
+    #                 self.api.change_stop_loss(self.api.last_price() - float(2))
+    #                 time.sleep(5)
+    #         else:
+    #             print("Position Closed")
+    #             flag = False
 
-    def closePositionMarket(self):
-        positionSize = self.api.getPositionSize()
+    def close_position_market(self):
+        position_size = self.api.get_position_size()
         flag = True
-        if(self.api.getPositionSide() == "Sell"):
-            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Buy', positionSize, 0, True)
+
+        if(self.api.get_position_side() == "Sell"):
+            self.api.place_order(self.api.last_price(), 'Market', 'Buy', position_size, 0, True)
         else:
-            self.api.placeOrder(self.api.lastPrice(), 'Market', 'Sell', positionSize, 0, True)
+            self.api.place_order(self.api.last_price(), 'Market', 'Sell', position_size, 0, True)
 
         while(flag == True):
-            if (self.activePositionCheck() == 1):
+            if (self.active_position_check() == 1):
                 print("Error Closing Position")
-                self.closePositionMarket()
+                self.close_position_market()
             else:
-                print("Position Closed at: " + str(self.api.lastPrice()))
+                print("Position Closed at: " + str(self.api.last_price()))
                 flag = False
 
-    def forceLimitClose(self):
+    def force_limit_close(self):
         flag = False
-        currentPrice = self.api.lastPrice()
-        inputQuantity = self.api.getPositionSize()
-        side = self.api.getPositionSide()
-        print("CurrentPrice: " + str(currentPrice))
+        current_price = self.api.last_price()
+        input_quantity = self.api.get_position_size()
+        side = self.api.get_position_side()
+        print("current_price: " + str(current_price))
 
         side = 'Sell' if (side == 'Buy') else 'Buy'
 
         while(flag == False):
-            if(self.activePositionCheck() == 1) and (self.activeOrderCheck() == 0):
+            if(self.active_position_check() == 1) and (self.active_order_check() == 0):
                 print("Print Order Check")
-                price = self.calc.calcLimitPriceDifference(side=side)
-                self.api.placeOrder(price=price, order_type='Limit', side=side, inputQuantity=inputQuantity, stop_loss=0, reduce_only=True)
+                price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
+                self.api.place_order(price=price, order_type='Limit', side=side, input_quantity=input_quantity, stop_loss=0, reduce_only=True)
                 time.sleep(2)
-            elif (self.activePositionCheck() == 1) and (self.activePositionCheck() == 1):
-                if (self.api.lastPrice() != currentPrice) and (self.api.lastPrice() != price):
-                    print("LastPrice: " + str(self.api.lastPrice()))
-                    print("currentPrice: " + str(currentPrice))
+            elif (self.active_position_check() == 1) and (self.active_position_check() == 1):
+                if (self.api.last_price() != current_price) and (self.api.last_price() != price):
+                    print("last_price: " + str(self.api.last_price()))
+                    print("current_price: " + str(current_price))
                     print("price: " + str(price))
-                    currentPrice = self.api.lastPrice()
-                    price = self.calc.calcLimitPriceDifference(side=side)
+                    current_price = self.api.last_price()
+                    price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
                     print("Price change: " + str(price))
-                    self.api.changeOrderPrice(price)
+                    self.api.change_order_price(price)
                     print("Order Price Updated: " + str(price))
                     print("")
                 time.sleep(2)
-            elif(self.activePositionCheck() == 0) and (self.activeOrderCheck() == 0):
+            elif(self.active_position_check() == 0) and (self.active_order_check() == 0):
                 flag = True
             else:
                 print("Something's fucking wrong.")

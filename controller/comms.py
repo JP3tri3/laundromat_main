@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from database.database import Database
+from database.database import Database as db
 from model.calc import Calc
 import json
 import datetime
@@ -12,14 +12,14 @@ import datetime
 #         self.total_profit_loss = 0
 #         self.total_number_trades = 0
 
-def timeStamp():
+def time_stamp():
     ct = datetime.datetime.now()
     print("Time: ", ct)
     return ct
 
-# def updateData(nameInput, keyInput, valueInput):
-#     name = nameInput
-#     key = keyInput
+# def update_data(name_input, key_input, valueInput):
+#     name = name_input
+#     key = key_input
 #     value = valueInput
 #     try:
 #         access_file = open("data.json", "r")
@@ -33,9 +33,9 @@ def timeStamp():
 #         access_file.close()
 #     except Exception as e:
 #         print("an exception occured - {}".format(e))
-#         updateData(name, key, value)
+#         update_data(name, key, value)
 
-def updateDisplayData(key, value):
+def update_display_data(key, value):
     access_file = open("data.json", "r")
     json_object = json.load(access_file)
     access_file.close()
@@ -46,14 +46,14 @@ def updateDisplayData(key, value):
     json.dump(json_object, access_file, indent=4)
     access_file.close()
 
-def updateDisplayDataValues():
-    updateDisplayData('mainTest_number_Of_trades', total_number_trades)
-    updateDisplayData('mainTest_profit_loss', round(total_profit_loss, 4))
+def update_display_dataValues():
+    update_display_data('mainTest_number_Of_trades', total_number_trades)
+    update_display_data('mainTest_profit_loss', round(total_profit_loss, 4))
 
 
-def viewData(nameInput, keyInput):
-    name = nameInput
-    key = keyInput
+def view_data(name_input, key_input):
+    name = name_input
+    key = key_input
 
     try:
         with open('data.json') as f:
@@ -62,9 +62,9 @@ def viewData(nameInput, keyInput):
         return data[name][key]
     except Exception as e:
         print("an exception occured - {}".format(e))
-        viewData(name, key)
+        view_data(name, key)
 
-def updateDataPersistent(data):
+def update_data_persistent(data):
         input_name = data['input_name']
 
         last_candle_high = data['last_candle_high']
@@ -73,26 +73,26 @@ def updateDataPersistent(data):
         wt1 = data['wt1']
         wt2 = data['wt2']
 
-        conn.updateStratValues(input_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
+        db().update_strat_values(input_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
 
-def updateDataOnAlert(data):
+def update_data_on_alert(data):
         strat_id = data['name']
         input_column = data['key']
         input_value = data['value']
 
-        updateData(inputName, inputKey, inputValue)
+        update_data(input_name, input_key, input_value)
         conn.updateTableValue('strategy', strat_id, input_column, input_value)
 
-def clearJson(flag, dataNameInput):
+def clear_json(flag):
     if(flag == True):
-        updateDisplayData('mainTest_number_Of_trades', 0)
-        updateDisplayData('mainTest_profit_loss', 0)
-        updateDisplayData('test1_number_Of_trades', 0)
-        updateDisplayData('test1_profit_loss', 0)
-        updateDisplayData('test2_number_Of_trades', 0)
-        updateDisplayData('test2_profit_loss', 0)
-        updateDisplayData('test3_number_Of_trades', 0)
-        updateDisplayData('test3_profit_loss', 0)        
+        update_display_data('mainTest_number_Of_trades', 0)
+        update_display_data('mainTest_profit_loss', 0)
+        update_display_data('test1_number_Of_trades', 0)
+        update_display_data('test1_profit_loss', 0)
+        update_display_data('test2_number_Of_trades', 0)
+        update_display_data('test2_profit_loss', 0)
+        update_display_data('test3_number_Of_trades', 0)
+        update_display_data('test3_profit_loss', 0)        
         print("Display Cleared")
 
 # def logClosingNotes(side, entry_price, exit_price, percent_gain, stop_loss, total_gain, total_coin, total_number_trades, total_p_l)
@@ -111,7 +111,7 @@ def clearJson(flag, dataNameInput):
 #         f.close()
 #         print("Logged Closing Details")
 
-def clearLogs(flag):
+def clear_logs(flag):
     if(flag == True):
         file = open("logs.txt","r+")
         file.truncate(0)

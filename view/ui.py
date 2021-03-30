@@ -1,8 +1,8 @@
 import sys
 sys.path.append("..")
-from database.database import Database
 import controller.comms as comms
 from api.bybit_api import Bybit_Api
+import config
 from model.orders import Orders
 from model.stop_loss import Stop_Loss
 from model.calc import Calc
@@ -15,9 +15,11 @@ class Ui:
 
         #manual Setters:
         leverage = 5
-        inputQuantity = 100 * leverage
+        input_quantity = 100 * leverage
         data_name = ''
         trade_id = 'bybit_manual'
+        api_key = config.BYBIT_TESTNET_API_KEY
+        api_secret = config.BYBIT_TESTNET_API_SECRET
 
         while (flag == True):
             symbol_pair = input("Enter Symbol: ").upper()
@@ -27,14 +29,22 @@ class Ui:
                 print("Invalid Input, try 'BTCUSD' or 'ETHUSD'")
 
         if (symbol_pair == "BTCUSD"):
-            conn.updateTradeValues(trade_id, 'manual', 'BTC', 'BTCUSD',  0, 0.50, leverage, inputQuantity, 'empty', 0, 0, 0)
+
+            symbol = 'BTC'
+            key_input = 0
+            limit_price_difference = 0.50
+            conn.updateTradeValues(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
+
         elif (symbol_pair == "ETHUSD"):
-            id_name = 'bybit_ethusd_manual'
-            conn.updateTradeValues(trade_id, 'manual','ETH', 'ETHUSD', 1, 0.05, leverage, inputQuantity, 'empty', 0, 0, 0)
+
+            symbol = 'ETH'
+            key_input = 1
+            limit_price_difference = 0.05
+            conn.updateTradeValues(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
 
-        self.api = Bybit_Api()
-        self.orders = Orders()
+        self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage)
+        self.orders = Orders(api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference)
         self.sl = Stop_Loss()
         self.calc = Calc()
 
@@ -77,61 +87,61 @@ class Ui:
 
             print("")
             taskInput = input("Input Task: ")
-            comms.timeStamp()
+            comms.time_stamp()
 
             if(taskInput == "exit"):
                 self.shutdown()
 
             elif(taskInput == "price info"):
-                self.api.priceInfo()
+                self.api.price_info()
 
             elif(taskInput == "info"):
-                print(self.api.symbolInfoResult())
+                print(self.api.symbol_info_result())
 
             elif(taskInput == "long"):
-                self.orders.createOrder("Buy", 'Limit', input)
+                self.orders.create_order("Buy", 'Limit', input)
 
             elif(taskInput == "short"):
-                self.orders.createOrder("Sell", 'Limit', input_quantity)
+                self.orders.create_order("Sell", 'Limit', input_quantity)
 
             elif(taskInput == "long market"):
-                self.orders.createOrder('Buy', 'Market', input_quantity)
+                self.orders.create_order('Buy', 'Market', input_quantity)
 
             elif(taskInput == "short market"):
-                self.orders.createOrder("Sell", 'Market', input_quantity)
+                self.orders.create_order("Sell", 'Market', input_quantity)
 
             elif(taskInput == "wallet"):
-                self.api.myWallet()
+                self.api.my_wallet()
 
             elif(taskInput == "stoploss"):
-                self.sl.changeStopLoss(500)
+                self.sl.change_stop_loss(500)
                 print("Updated Stop Loss")
 
             elif(taskInput == "closesl"):
-                self.orders.closePositionSl()
+                self.orders.close_position_sl()
 
             elif(taskInput == "closem"):
-                self.orders.closePositionMarket()
+                self.orders.close_position_market()
 
             elif(taskInput == "cancel"):
-                self.api.cancelAllOrders()
+                self.api.cancel_all_orders()
                 print("Orders Cancelled")
 
             elif(taskInput == "active"):
-                print(self.orders.activeOrderCheck())
+                print(self.orders.active_order_check())
 
             elif(taskInput == "position"):
                 print("Position: ")
-                symbol.activePositionCheck()
+                self.orders.active_position_check()
 
             elif(taskInput == "test"):
-                print(self.orders.activeOrderCheck())
+                print(self.orders.testOrder())
 
             elif(taskInput == "test1"):
-                print(self.orders.activePositionCheck())
+                print(self.orders.active_position_check())
 
             elif(taskInput == "test2"):
-                print(self.api.closedProfitLoss())
+                print(self.api.closed_profit_loss())
 
             elif(taskInput == "change"):
                 flag = False
@@ -140,10 +150,10 @@ class Ui:
             elif(taskInput == "update sl"):
                 flag = False
                 while(flag == False):
-                    slAmountInput = input("Enter SL Amount:")
-                    if slAmountInput.isnumeric():
+                    sl_amountInput = input("Enter SL Amount:")
+                    if sl_amountInput.isnumeric():
                         flag = True
-                        self.sl.changeStopLoss(slAmountInput)
+                        self.sl.change_stop_loss(sl_amountInput)
                     else:
                         print("Invalid Entry...")
 

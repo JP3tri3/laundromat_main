@@ -12,9 +12,9 @@ from sanic.request import Request
 from sanic.response import json
 from sanic_jinja2 import SanicJinja2
 from strategy import Strategy
-from test.min9.strategy import Strategy as Strategy9min
-from test.min16.strategy import Strategy as Strategy16min
-from test.min30.strategy import Strategy as Strategy30min
+# from test.min9.strategy import Strategy as Strategy9min
+# from test.min16.strategy import Strategy as Strategy16min
+# from test.min30.strategy import Strategy as Strategy30min
 
 app = Sanic(__name__)
 jinja = SanicJinja2(app, pkg_name="listener")
@@ -22,7 +22,7 @@ jinja = SanicJinja2(app, pkg_name="listener")
 myTime = int(time.time() * 1000)
 trendFlag = False
 
-strat = Strategy(-10.5, 10.5, '1_min', 'bybit_btcusd_auto_1')
+strat = Strategy(-10.5, 10.5)
 # strat9min = Strategy9min(-10.5, 10.5, '9_min')
 # strat16min = Strategy16min(-8, 8, '16_min')
 # strat30min = Strategy30min(-7, 7, '30_min')
@@ -48,21 +48,21 @@ async def webhook(request):
     else:
         if(persistent_data == 'True'):
 
-            comms.updateDataPersistent(data)
+            comms.update_data_persistent(data)
 
         else:
 
-            comms.updateDataOnAlert(data)
+            comms.update_data_on_alert(data)
 
         #strategy:
-        strat.determineVwapTrend()
+        strat.determine_vwap_trend()
 
         # if (data['input_name'] == '9_min'):
-        #     strat9min.determineVwapTrend()
+        #     strat9min.determine_vwap_trend()
         # elif (data['input_name'] == '16_min'):
-        #     strat16min.determineVwapTrend()
+        #     strat16min.determine_vwap_trend()
         # elif (data['input_name'] == '30_min'):  
-        #     strat30min.determineVwapTrend()
+        #     strat30min.determine_vwap_trend()
 
         return json({
             "code": "success",

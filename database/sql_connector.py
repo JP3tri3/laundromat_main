@@ -11,8 +11,8 @@ db = mysql.connector.connect(
 mycursor = db.cursor()
 
 # # create table:
-# mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 float UNSIGNED, wt2 float UNSIGNED, last_candle_high float UNSIGNED, last_candle_low float UNSIGNED, last_candle_vwap float UNSIGNED, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
-# mycursor.execute("CREATE TABLE trades (id VARCHAR(50),  strat_id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT UNSIGNED, limit_price_difference FLOAT UNSIGNED, leverage INT UNSIGNED, input_quantity INT UNSIGNED, side VARCHAR(8), stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, trade_record_id INT UNSIGNED)")
+# mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 DECIMAL, wt2 DECIMAL, last_candle_high DECIMAL, last_candle_low DECIMAL, last_candle_vwap DECIMAL, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
+# mycursor.execute("CREATE TABLE trades (id VARCHAR(50),  strat_id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT, limit_price_difference FLOAT, leverage INT, input_quantity INT, side VARCHAR(8), stop_loss FLOAT, percent_gain DECIMAL, trade_record_id INT)")
 # mycursor.execute("CREATE TABLE trade_records (id INT UNSIGNED, symbol_pair VARCHAR(50), entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, dollar_gain FLOAT UNSIGNED, coin_gain FLOAT UNSIGNED, number_of_trades INT UNSIGNED, side VARCHAR(8), total_p_l FLOAT UNSIGNED)")
 
 # # describe table details:
@@ -22,6 +22,9 @@ mycursor = db.cursor()
 #     print(x)
 
 # # insert into table
+# mycursor.execute("INSERT INTO Strategy () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ("1_min", 0.0, 0.0, 0.0, 0.0, 0.0, "null", "null", "null", "null"))
+# mycursor.execute("INSERT INTO Strategy () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ("9_min", 0.0, 0.0, 0.0, 0.0, 0.0, "null", "null", "null", "null"))
+# mycursor.execute("INSERT INTO Strategy () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ("16_min", 0.0, 0.0, 0.0, 0.0, 0.0, "null", "null", "null", "null"))
 # mycursor.execute("INSERT INTO Strategy () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ("30_min", 0.0, 0.0, 0.0, 0.0, 0.0, "null", "null", "null", "null"))
 # db.commit()
 
@@ -29,7 +32,6 @@ mycursor = db.cursor()
 # mycursor.execute("ALTER TABLE trade_records ADD time VARCHAR(50)")
 # db.commit()
 
-# mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_1', 'empty', 'empty', 0, 0.0, 0, 0, 'empty'))
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_manual', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_2', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
@@ -171,11 +173,11 @@ def clearAllTableValues():
 # mycursor.getUpdateCount()
 # print(viewDbValues('9_min', 'wt1'))
 # test1 = viewDbValues('9_min', 'wt1')
-# createTradeRecord('test1', 'BTCUSD', 14.4, 128.5, 932.4, 43.3, 12.3, 77.3, 4.2, 199999.2)
+# create_trade_record('test1', 'BTCUSD', 14.4, 128.5, 932.4, 43.3, 12.3, 77.3, 4.2, 199999.2)
 # deleteTradeRecords()
 # clearAllTableValues()
 
-# createTradeRecord(0, 'empty', 0, 0, 0, 0, 0, 0, 0, 'empty', 0)
+# create_trade_record(0, 'empty', 0, 0, 0, 0, 0, 0, 0, 'empty', 0)
 
 # test = viewTableRow('trades', 'bybit_btcusd_manual')
 
