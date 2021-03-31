@@ -1,14 +1,12 @@
 import sys
 sys.path.append("..")
-import controller.comms as comms
-from model.orders import Orders
-# from model.stop_loss import Stop_Loss
 from api.bybit_api import Bybit_Api
-from strategy import Strategy
-import database.sql_connector as conn
+import controller.comms as comms
+from logic.strategy import Strategy
+from logic.calc import Calc as calc
+# import database.sql_connector as conn
+from database.database import Database as db
 from time import time, sleep
-import datetime
-
 import asyncio
 
 leverage = 5
@@ -32,9 +30,11 @@ def get_strat_id():
 async def main():
 
     if (symbol_pair == "BTCUSD"):
-        conn.updateTradeValues(trade_id, strat_id, 'BTC', 'BTCUSD',  0, 0.50, leverage, input_quantity, 'empty', 0, 0, 0)
+        # conn.updateTradeValues(trade_id, strat_id, 'BTC', 'BTCUSD',  0, 0.50, leverage, input_quantity, 'empty', 0, 0, 0)
+        db().update_trade_values(trade_id, strat_id, 'BTC', 'BTCUSD',  0, 0.50, leverage, input_quantity, 'empty', 0, 0, 0)
     elif (symbol_pair == "ETHUSD"):
-        conn.updateTradeValues(trade_id, strat_id,'ETH', 'ETHUSD', 1, 0.05, leverage, input_quantity, 'empty', 0, 0, 0)
+        # conn.updateTradeValues(trade_id, strat_id,'ETH', 'ETHUSD', 1, 0.05, leverage, input_quantity, 'empty', 0, 0, 0)
+        db().update_trade_values(trade_id, strat_id,'ETH', 'ETHUSD', 1, 0.05, leverage, input_quantity, 'empty', 0, 0, 0)
     else:
         print("Invalid Symbol Pair")
 
@@ -57,7 +57,7 @@ async def main():
         temp += 1
         if (temp == tempCondition):
             print("waiting on input...")
-            comms.time_stamp()
+            calc().time_stamp()
             temp = 0
         strat.vwap_cross_strategy()
     order.active_position_check()    

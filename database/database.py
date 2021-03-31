@@ -2,12 +2,16 @@ import sys
 sys.path.append("..")
 # import auto
 import database.sql_connector as conn
+from logic.calc import Calc as calc
 
 class Database:
 
     print("DATABASE INITIALIZED")
 
     # # trades table:
+
+    def update_trade_values(self, trade_id, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id):
+        return conn.updateTradeValues(trade_id, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id)
 
     def get_symbol(self, trade_id):
         return conn.viewDbValue('trades', trade_id, 'symbol')
@@ -85,9 +89,14 @@ class Database:
 
     # # trade_records table:
 
-    def create_trade_record(self, trade_record_id, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time):
-        self.trade_record_id = trade_record_id_input
-        return conn.create_trade_record(trade_record_id, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time)
+    def get_trade_record_total_dollar_gain(self, trade_record_id):
+        return conn.viewDbValue('trade_records', trade_record_id, 'total_p_l_dollar')
+
+    def get_trade_record_total_coin_gain(self, trade_record_id):
+        return conn.viewDbValue('trade_records', trade_record_id, 'total_p_l_coin')
+
+    def create_trade_record(self, trade_record_id, trade_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin):
+        return conn.create_trade_record(trade_record_id, trade_id, symbol_pair, side, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin, calc().time_stamp())
 
     def set_entry_price(self, trade_record_id, entry_price_input):
         return conn.updateTableValue('trade_records', trade_record_id, 'entry_price', entry_price_input)
@@ -103,9 +112,6 @@ class Database:
 
     def get_strat_values(self, trade_id):
         return conn.get_table_pair('strategy', trade_id)
-
-    def test1(self, trade_id):
-        print(conn.get_table_pair('trades', trade_id))
 
 
     # def set_level(self):

@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 from database.database import Database as db
-from model.calc import Calc
+from logic.calc import Calc as calc
 import json
 import datetime
 
@@ -12,10 +12,7 @@ import datetime
 #         self.total_profit_loss = 0
 #         self.total_number_trades = 0
 
-def time_stamp():
-    ct = datetime.datetime.now()
-    print("Time: ", ct)
-    return ct
+
 
 # def update_data(name_input, key_input, valueInput):
 #     name = name_input

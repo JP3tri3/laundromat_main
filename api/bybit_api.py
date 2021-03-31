@@ -1,18 +1,15 @@
 import sys
 sys.path.append("..")
-import config
 import bybit
 
 class Bybit_Api():
 
-    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage):
+    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input):
 
         self.client = bybit.bybit(test=True, api_key=api_key, api_secret=api_secret)
         self.symbol = symbol
         self.symbol_pair = symbol_pair
         self.key_input = key_input
-        self.input_quantity = input_quantity
-        self.leverage = leverage
 
     def get_key_input(self):
         return self.key_input
@@ -130,15 +127,17 @@ class Bybit_Api():
         position = self.get_position_result()
         return position['leverage']
 
-    def set_leverage(self):
-        set_leverage = self.client.Positions.Positions_saveLeverage(symbol=self.symbol_pair, leverage=str(self.leverage)).result()
-        print("Leverage set to: " + str(self.leverage))
+    def set_leverage(self, leverage):
+        set_leverage = self.client.Positions.Positions_saveLeverage(symbol=self.symbol_pair, leverage=str(leverage)).result()
+        print("Leverage set to: " + str(leverage))
         return set_leverage    
 #stop_loss
 
     def change_stop_loss(self, sl_amount):
         self.client.Positions.Positions_tradingStop(
             symbol=self.symbol_pair, stop_loss=str(sl_amount)).result()
+        print("")
+        print("Changed stop Loss to: " + str(sl_amount))
 
 #Profit & Loss
     def closed_profit_loss(self):
@@ -168,7 +167,7 @@ class Bybit_Api():
         exit_price = float(self.calc_exit_price())
         return round(float('%.10f' % total) * exit_price, 3)
 
-    def calc_total_gain(self):
+    def calc_total_gain(self, input_quantity):
         total = 0
         index = 0
         total_quantity = 0
@@ -185,7 +184,7 @@ class Bybit_Api():
 
         return total
 
-    def get_total_coin(self):
+    def get_total_coin(self, input_quantity):
         index = 0
         total_quantity = 0
         total = 0.0
@@ -229,7 +228,7 @@ class Bybit_Api():
             return (entry_price / divisible)
 
 
-    def get_exit_price(self):
+    def get_exit_price(self, input_quantity):
         index = 0
         divisible = 1
         last_exit_price = self.last_exit_price(index)

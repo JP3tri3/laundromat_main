@@ -1,11 +1,15 @@
+import sys
+sys.path.append("..")
 import mysql.connector
+import config
+import datetime
 
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    passwd="root",
-    auth_plugin='mysql_native_password',
-    database='laundrobase'
+    host = config.host,
+    user = config.user,
+    passwd = config.passwd,
+    auth_plugin = config.auth_plugin,
+    database = config.database_name
 )
 
 mycursor = db.cursor()
@@ -13,7 +17,7 @@ mycursor = db.cursor()
 # # create table:
 # mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 DECIMAL, wt2 DECIMAL, last_candle_high DECIMAL, last_candle_low DECIMAL, last_candle_vwap DECIMAL, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
 # mycursor.execute("CREATE TABLE trades (id VARCHAR(50),  strat_id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT, limit_price_difference FLOAT, leverage INT, input_quantity INT, side VARCHAR(8), stop_loss FLOAT, percent_gain DECIMAL, trade_record_id INT)")
-# mycursor.execute("CREATE TABLE trade_records (id INT UNSIGNED, symbol_pair VARCHAR(50), entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, dollar_gain FLOAT UNSIGNED, coin_gain FLOAT UNSIGNED, number_of_trades INT UNSIGNED, side VARCHAR(8), total_p_l FLOAT UNSIGNED)")
+# mycursor.execute("CREATE TABLE trade_records (trade_record_id INT UNSIGNED, trade_id VARCHAR(16), strat_id VARCHAR(16), symbol_pair VARCHAR(50), side VARCHAR(8), input_quantity INT UNSIGNED, entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, dollar_gain FLOAT UNSIGNED, coin_gain FLOAT UNSIGNED, total_p_l_dollar DECIMAL, total_p_l_coin DECIMAL, time VARCHAR(50))")
 
 # # describe table details:
 # mycursor.execute("DESCRIBE Strategy")
@@ -93,11 +97,11 @@ def updateTradeValues(id_name, strat_id, symbol, symbol_pair, key_input, limit_p
         print("Failed to update record to database: {}".format(error))
 
 ## Create
-def create_trade_record(id_name, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time):
+def create_trade_record(trade_record_id, trade_id, strat_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin, time):
     try:
-        query = "INSERT INTO trade_records () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO trade_records () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         print(query)
-        mycursor.execute(query,(id_name, symbol_pair, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, number_of_trades, side, total_p_l, time))
+        mycursor.execute(query,(trade_record_id, trade_id, strat_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin, time))
         db.commit()
     except mysql.connector.Error as error:
         print("Failed to update record to database: {}".format(error))
