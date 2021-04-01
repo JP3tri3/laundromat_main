@@ -2,10 +2,9 @@ import sys
 sys.path.append("..")
 import bybit
 
-class Bybit_Api():
+class Bybit_Api:
 
     def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input):
-
         self.client = bybit.bybit(test=True, api_key=api_key, api_secret=api_secret)
         self.symbol = symbol
         self.symbol_pair = symbol_pair
@@ -15,10 +14,12 @@ class Bybit_Api():
         return self.key_input
 
     def my_wallet(self):
+        print(self.symbol)
         my_wallet = self.client.Wallet.Wallet_getBalance(
-            coin=symbol).result()
-        my_balance = my_wallet[0]['result'][symbol]['available_balance']
-        print(my_balance)
+            coin=self.symbol).result()
+        # my_balance = my_wallet[0]['result']['btc']['available_balance']
+        # print(my_balance)
+        print(my_wallet)
 
 #symbol:
 
@@ -28,7 +29,7 @@ class Bybit_Api():
 
     def symbol_info_keys(self):
         infoKeys = self.symbol_info_result()
-        return infoKeys[key_input]
+        return infoKeys[self.key_input]
 
 #price:
 
@@ -61,11 +62,15 @@ class Bybit_Api():
     def get_order_id(self):
         try:
             order = self.get_order()
-            order_id = order[0]['order_id']
+            if (order == []):
+                return "Waiting on Order ID"
+            else:
+                order_id = order[0]['order_id']
+                return order_id
         except Exception as e:
             print("an exception occured - {}".format(e))
             return False
-        return order_id
+
 
     def cancel_all_orders(self):
         print("Cancelling All Orders...")
@@ -74,8 +79,7 @@ class Bybit_Api():
 
 #position:
     def get_position_result(self):
-        position_result = self.client.Positions.Positions_myPosition(
-            symbol=self.symbol_pair).result()
+        position_result = self.client.Positions.Positions_myPosition(symbol=self.symbol_pair).result()
         return position_result[0]['result']
 
     def get_position_side(self):

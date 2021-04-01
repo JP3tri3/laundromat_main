@@ -8,11 +8,13 @@ import time
 
 class Trade_Logic:
     
-    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference):
+    def __init__(self, api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference):
         self.atr = None
-        self.total_profit_loss = 0
+        self.key_input = key_input
+        self.leverage = leverage
         self.limit_price_difference = limit_price_difference
-        self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
+
+        self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
 
     def active_order_check(self):
         order = self.api.get_order()
@@ -60,6 +62,8 @@ class Trade_Logic:
 
             else:
                 flag = True
+                print("Position Successful")
+                return 1
 
     def create_order(self, side_input, order_type, input_quantity):
         global level
@@ -78,14 +82,16 @@ class Trade_Logic:
             print("Create Order Cancelled")
         else:
             one_percent = calc().calc_one_percent(self.leverage, self.api.last_price())
-            initial_stop_loss = (api.last_price() - (2*one_percent)) if (side_input == 'Buy') \
+            initial_stop_loss = (self.api.last_price() - (2*one_percent)) if (side_input == 'Buy') \
                 else (self.api.last_price() + (2*one_percent))
 
             while(flag == False):
                 if ((self.active_order_check() == 0) and (self.active_position_check() == 0)):
                     print("Attempting to place order...")
-                    entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
-                    self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=db().get_input_quantity(), stop_loss=initial_stop_loss, reduce_only=False)
+                    # entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
+                    #TEST
+                    entry_price = self.api.last_price()
+                    self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=input_quantity, stop_loss=initial_stop_loss, reduce_only=False)
 
                     if(order_type == 'Limit'):
                         print("")
@@ -106,6 +112,7 @@ class Trade_Logic:
                         print("Initial Stop Loss: " + str(initial_stop_loss))
                         print("")
                         flag = True
+                        return 1
 
     def close_position_market(self):
         position_size = self.api.get_position_size()

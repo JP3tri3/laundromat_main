@@ -15,7 +15,6 @@ class Ui:
         #manual Setters:
         leverage = 5
         input_quantity = 100 * leverage
-        data_name = ''
         trade_id = 'bybit_manual'
         api_key = config.BYBIT_TESTNET_API_KEY
         api_secret = config.BYBIT_TESTNET_API_SECRET
@@ -42,7 +41,7 @@ class Ui:
             db().update_trade_values(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
-        self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference)
+        self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference)
 
         self.inputOptions(symbol_pair)
         self.startMenu(symbol_pair, trade_id, input_quantity)
@@ -61,6 +60,7 @@ class Ui:
         print("Create Short Market Order: 'short market'")
         print("Cancel Pending Orders: 'cancel'")
         print("Market Close: 'closem'")
+        print("Force Limit Close: 'closel")
         print("")
         print("Development Info:")
         print("")
@@ -93,7 +93,7 @@ class Ui:
                 print(self.api.symbol_info_result())
 
             elif(taskInput == "long"):
-                self.tl.create_order("Buy", 'Limit', input)
+                self.tl.create_order("Buy", 'Limit', input_quantity)
 
             elif(taskInput == "short"):
                 self.tl.create_order("Sell", 'Limit', input_quantity)
@@ -112,7 +112,10 @@ class Ui:
                 print("Updated Stop Loss")
 
             elif(taskInput == "closem"):
-                self.tl.close_position_market()
+                self.tl.close_position_market() 
+
+            elif(taskInput == "closel"):
+                self.tl.force_limit_close() 
 
             elif(taskInput == "cancel"):
                 self.api.cancel_all_orders()
