@@ -27,7 +27,7 @@ class Trade_Logic:
         except Exception as e:
             print("Active Position Check Exception Occured...")
             print("Trying again...")
-            time.sleep(1)
+            sleep(1)
             self.active_position_check()
 
     def input_atr(self):

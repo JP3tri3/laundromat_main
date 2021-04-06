@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-import config
+from database import config
 from time import time, sleep
 import json
 import time
@@ -11,7 +11,6 @@ from sanic import response
 from sanic.request import Request
 from sanic.response import json
 from sanic_jinja2 import SanicJinja2
-from logic.strategy import Strategy
 
 ##TO DO UPDATE IMPORTS / CHECK STRAT
 

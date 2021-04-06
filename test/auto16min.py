@@ -10,26 +10,17 @@ from database.database import Database as db
 from time import time, sleep
 import asyncio
 
-# #TEST
-# from logic.trade_logic import Trade_Logic
-# from logic.stop_loss import Stop_Loss
-
-api_key = config.BYBIT_TESTNET_API_KEY
-api_secret = config.BYBIT_TESTNET_API_SECRET
+api_key = config.BYBIT_TESTNET_API_KEY_auto_3
+api_secret = config.BYBIT_TESTNET_API_SECRET_auto_3
 leverage = 3
 symbol_pair = 'BTCUSD'
 input_quantity = 500
-strat_id = '1_min'
-trade_id = 'bybit_auto_1'
-vwap_margin_neg = -7
-vwap_margin_pos = 7
+strat_id = '16_min'
+trade_id = 'bybit_auto_3'
+vwap_margin_neg = -8
+vwap_margin_pos = 8
 
 async def main():
-
-    #input true to clear:
-    db().clear_all_tables_values(True)
-    db().delete_trade_records(True)
-    comms.clear_json(True)
 
     if (symbol_pair == "BTCUSD"):
         symbol = 'BTC'
@@ -48,6 +39,7 @@ async def main():
     api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
 
     api.set_leverage(leverage)
+
 
     #initiate strategy:
     strat.vwap_cross_strategy()
