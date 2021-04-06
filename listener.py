@@ -1,11 +1,11 @@
 import sys
 sys.path.append("..")
-import controller.comms as comms
 import config
 from time import time, sleep
 import json
 import time
 import asyncio
+from database.database import Database as db
 from sanic import Sanic
 from sanic import response
 from sanic.request import Request
@@ -20,8 +20,6 @@ jinja = SanicJinja2(app, pkg_name="listener")
 
 myTime = int(time.time() * 1000)
 trendFlag = False
-
-strat = Strategy(-10.5, 10.5)
 
 @app.route('/')
 async def index(request):
@@ -44,21 +42,19 @@ async def webhook(request):
     else:
         if(persistent_data == 'True'):
 
-            comms.update_data_persistent(data)
+            table_id = data['input_name']
+            last_candle_high = data['last_candle_high']
+            last_candle_low = data['last_candle_low']
+            last_candle_vwap = data['last_candle_vwap']
+            wt1 = data['wt1']
+            wt2 = data['wt2']
+
+            db().update_strat_values(table_id, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
 
         else:
 
             comms.update_data_on_alert(data)
 
-        #strategy:
-        strat.determine_vwap_trend()
-
-        # if (data['input_name'] == '9_min'):
-        #     strat9min.determine_vwap_trend()
-        # elif (data['input_name'] == '16_min'):
-        #     strat16min.determine_vwap_trend()
-        # elif (data['input_name'] == '30_min'):  
-        #     strat30min.determine_vwap_trend()
 
         return json({
             "code": "success",

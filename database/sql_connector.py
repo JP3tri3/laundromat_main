@@ -17,7 +17,7 @@ mycursor = db.cursor()
 # # create table:
 # mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 DECIMAL, wt2 DECIMAL, last_candle_high DECIMAL, last_candle_low DECIMAL, last_candle_vwap DECIMAL, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
 # mycursor.execute("CREATE TABLE trades (id VARCHAR(50),  strat_id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT, limit_price_difference FLOAT, leverage INT, input_quantity INT, side VARCHAR(8), stop_loss FLOAT, percent_gain DECIMAL, trade_record_id INT)")
-# mycursor.execute("CREATE TABLE trade_records (trade_record_id INT UNSIGNED, trade_id VARCHAR(16), strat_id VARCHAR(16), symbol_pair VARCHAR(50), side VARCHAR(8), input_quantity INT UNSIGNED, entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain FLOAT UNSIGNED, dollar_gain FLOAT UNSIGNED, coin_gain FLOAT UNSIGNED, total_p_l_dollar DECIMAL, total_p_l_coin DECIMAL, time VARCHAR(50))")
+# mycursor.execute("CREATE TABLE trade_records (trade_record_id INT UNSIGNED, trade_id VARCHAR(16), strat_id VARCHAR(16), symbol_pair VARCHAR(50), side VARCHAR(8), input_quantity INT UNSIGNED, entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain VARCHAR(24), dollar_gain VARCHAR(24), coin_gain VARCHAR(24), total_p_l_dollar VARCHAR(24), total_p_l_coin VARCHAR(24), time VARCHAR(50))")
 
 # # describe table details:
 # mycursor.execute("DESCRIBE Strategy")
@@ -77,7 +77,7 @@ def updateTableValue(table_name, id_name, column_name, value):
         print("Failed to update record to database: {}".format(error))
 
 
-def updateStratValues(id_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap):
+def update_strat_values(id_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap):
     try:
         query = "UPDATE strategy SET wt1=" +str(wt1)+ ", wt2=" +str(wt2)+ ", last_candle_low=" +str(last_candle_low)+ ", last_candle_high=" +str(last_candle_high)+ ", last_candle_vwap=" +str(last_candle_vwap)+ " WHERE id = '" +str(id_name)+ "'"
         print(query)
@@ -86,8 +86,16 @@ def updateStratValues(id_name, wt1, wt2, last_candle_high, last_candle_low, last
     except mysql.connector.Error as error:
         print("Failed to update record to database: {}".format(error))  
 
+def update_strat_trends(id_name, active_position, new_trend, last_trend, active_trend):
+    try:
+        query = "UPDATE strategy SET active_position='" +str(active_position)+ "', new_trend='" +str(new_trend)+ "', last_trend='" +str(last_trend)+ "', active_trend='" +str(active_trend)+ "' WHERE id = '" +str(id_name)+ "'"
+        print(query)
+        mycursor.execute(query)
+        db.commit()
+    except mysql.connector.Error as error:
+        print("Failed to update record to database: {}".format(error))  
 
-def updateTradeValues(id_name, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id):
+def update_trade_values(id_name, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id):
     try:
         query = "UPDATE trades SET strat_id='" +str(strat_id)+ "', symbol='" +str(symbol)+ "', symbol_pair='" +str(symbol_pair)+ "', key_input=" +str(key_input)+ ", limit_price_difference=" +str(limit_price_difference)+ ", leverage=" +str(leverage)+ ", input_quantity=" +str(input_quantity)+ ", side='" +str(side)+  "', stop_loss=" +str(stop_loss)+ ", percent_gain=" +str(percent_gain)+ ", trade_record_id=" +str(trade_record_id)+" WHERE id='" +str(id_name)+ "'" 
         print(query)
@@ -107,7 +115,7 @@ def create_trade_record(trade_record_id, trade_id, strat_id, symbol_pair, side, 
         print("Failed to update record to database: {}".format(error))
 
 ## Delete 
-def deleteTradeRecords():
+def delete_trade_records():
     try:
         query = "DELETE FROM trade_records"
         print(query)
@@ -122,6 +130,7 @@ def viewDbValue(table_name, id_name, column_name):
         query = "SELECT " + str(column_name) + " FROM " +str(table_name)+ " WHERE id = '" + str(id_name) + "'"
         mycursor.execute(query)
         result = mycursor.fetchall()
+        db.commit()
         return result[0][0]
     except mysql.connector.Error as error:
         print("Failed to retrieve record from database: {}".format(error))
@@ -143,6 +152,8 @@ def get_table_pair(table_name, id_name):
             kv_pair = [(column_name_list[x][0], row_list[x])]
             kv_dict.update(kv_pair)
 
+        db.commit()
+
         return(kv_dict)
 
     except mysql.connector.Error as error:
@@ -151,28 +162,20 @@ def get_table_pair(table_name, id_name):
 ## Get Table Columns
 def get_table_column_names(table_name):
     try:
-
-
         for x in range(len(returnResult)):
             column_name_list.append(returnResult[x][0])
 
+        db.commit()
         return(column_name_list)
-
 
     except mysql.connector.Error as error:
         print("Failed to retrieve record from database: {}".format(error))    
 
 
-def clearAllTableValues():
-    updateTradeValues('bybit_manual', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
-    updateTradeValues('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
-    updateStratValues('1_min', 0, 0, 0, 0, 0)
-    updateStratValues('9_min', 0, 0, 0, 0, 0)
-    updateStratValues('16_min', 0, 0, 0, 0, 0)
-    updateStratValues('30_min', 0, 0, 0, 0, 0)
+
 
 # updateTableValue('trades', 'main', 'leverage', 0)
-# updateStratValues('9_min', 0, 0, 0, 0, 0)
+# update_strat_values('9_min', 0, 0, 0, 0, 0)
 # viewDbValues('9_min', 'wt1')
 # mycursor.getUpdateCount()
 # print(viewDbValues('9_min', 'wt1'))
@@ -189,4 +192,4 @@ def clearAllTableValues():
 # print(test[0][2])
 
 
-# updateTradeValues('bybit_manual', '1_min', 'BTC', 'BTCUSD', 0, 0.50, 5, 500, 'empty', 0, 0, 0)
+# update_trade_values('bybit_manual', '1_min', 'BTC', 'BTCUSD', 0, 0.50, 5, 500, 'empty', 0, 0, 0)

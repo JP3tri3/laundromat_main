@@ -4,7 +4,7 @@ sys.path.append("..")
 from api.bybit_api import Bybit_Api
 from logic.calc import Calc as calc
 from model.trades import Trade
-import time
+from time import time, sleep
 
 class Trade_Logic:
     
@@ -27,7 +27,7 @@ class Trade_Logic:
         except Exception as e:
             print("Active Position Check Exception Occured...")
             print("Trying again...")
-            time.sleep(2)
+            time.sleep(1)
             self.active_position_check()
 
     def input_atr(self):
@@ -58,11 +58,10 @@ class Trade_Logic:
                     self.api.change_order_price(price)
                     print("Order Price Updated: " + str(price))
                     print("")
-                time.sleep(2)
+                sleep(0.5)
 
             else:
                 flag = True
-                print("Position Successful")
                 return 1
 
     def create_order(self, side_input, order_type, input_quantity):
@@ -88,12 +87,10 @@ class Trade_Logic:
             while(flag == False):
                 if ((self.active_order_check() == 0) and (self.active_position_check() == 0)):
                     print("Attempting to place order...")
-                    # entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
-                    #TEST
-                    entry_price = self.api.last_price()
+                    entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
                     self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=input_quantity, stop_loss=initial_stop_loss, reduce_only=False)
 
-                    if(order_type == 'Limit'):
+                    if(order_type == 'Limit') and (self.active_order_check() == 1):
                         print("")
                         print("Retrieving Order ID...")
                         print("Order ID: " + str(self.api.get_order_id()))
@@ -157,9 +154,9 @@ class Trade_Logic:
                     self.api.change_order_price(price)
                     print("Order Price Updated: " + str(price))
                     print("")
-                time.sleep(2)
+                sleep(0.5)
             elif(self.active_position_check() == 0) and (self.active_order_check() == 0):
                 flag = True
             else:
                 print("Something's fucking wrong.")
-                sleep(2)
+                sleep(0.5)

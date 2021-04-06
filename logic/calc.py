@@ -4,7 +4,7 @@ import datetime
 
 class Calc:
 
-    def time_stamp():
+    def time_stamp(self):
         ct = datetime.datetime.now()
         print("Time: ", ct)
         return ct

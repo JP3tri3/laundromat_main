@@ -30,14 +30,14 @@ class Ui:
             symbol = 'BTC'
             key_input = 0
             limit_price_difference = 0.50
-            # conn.updateTradeValues(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
+            # conn.update_trade_values(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
             db().update_trade_values(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
         elif (symbol_pair == "ETHUSD"):
             symbol = 'ETH'
             key_input = 1
             limit_price_difference = 0.05
-            # conn.updateTradeValues(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
+            # conn.update_trade_values(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
             db().update_trade_values(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
@@ -81,7 +81,7 @@ class Ui:
 
             print("")
             taskInput = input("Input Task: ")
-            calc.time_stamp()
+            calc().time_stamp()
 
             if(taskInput == "exit"):
                 self.shutdown()

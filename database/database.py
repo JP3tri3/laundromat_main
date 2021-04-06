@@ -11,7 +11,7 @@ class Database:
     # # trades table:
 
     def update_trade_values(self, trade_id, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id):
-        return conn.updateTradeValues(trade_id, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id)
+        return conn.update_trade_values(trade_id, strat_id, symbol, symbol_pair, key_input, limit_price_difference, leverage, input_quantity, side, stop_loss, percent_gain, trade_record_id)
 
     def get_symbol(self, trade_id):
         return conn.viewDbValue('trades', trade_id, 'symbol')
@@ -31,6 +31,9 @@ class Database:
     def set_side(self, trade_id, side):
         return conn.updateTableValue('trades', trade_id, 'side', side)
 
+    def set_stop_loss(self, trade_id, stop_loss):
+        return conn.updateTableValue('trades', trade_id, 'stop_loss', stop_loss)
+
     def get_input_quantity(self, trade_id):
         return conn.viewDbValue('trades', trade_id, 'input_quantity')
 
@@ -46,7 +49,7 @@ class Database:
     # # strategy table:
 
     def update_strat_values(self, strat_id, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap):
-        return conn.updateStratValues(strat_id, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)
+        return conn.update_strat_values(strat_id, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)
 
     def get_wt1(self, strat_id):
         return conn.viewDbValue('strategy', strat_id, 'wt1')    
@@ -95,8 +98,8 @@ class Database:
     def get_trade_record_total_coin_gain(self, trade_record_id):
         return conn.viewDbValue('trade_records', trade_record_id, 'total_p_l_coin')
 
-    def create_trade_record(self, trade_record_id, trade_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin):
-        return conn.create_trade_record(trade_record_id, trade_id, symbol_pair, side, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin, calc().time_stamp())
+    def create_trade_record(self, trade_record_id, trade_id, strat_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin):
+        return conn.create_trade_record(trade_record_id, trade_id, strat_id, symbol_pair, side, input_quantity, entry_price, exit_price, stop_loss, percent_gain, dollar_gain, coin_gain, total_p_l_dollar, total_p_l_coin, calc().time_stamp())
 
     def set_entry_price(self, trade_record_id, entry_price_input):
         return conn.updateTableValue('trade_records', trade_record_id, 'entry_price', entry_price_input)
@@ -104,15 +107,37 @@ class Database:
     def get_entry_price(self, trade_record_id):
         return conn.viewDbValue('trade_records', trade_record_id, 'entry_price')
 
+    def delete_trade_records(self, flag):
+        if (flag == True):
+            print("Deleting Trade Records...")
+            return conn.delete_trade_records()
+        else:
+            print("Maintaining Trade Records...")
+            return 0
 
-    # # table dictionaries
+    # # table dicts:
 
     def get_trade_values(self, trade_id):
         return conn.get_table_pair('trades', trade_id)
 
-    def get_strat_values(self, trade_id):
-        return conn.get_table_pair('strategy', trade_id)
+    def get_strat_values(self, strat_id):
+        return conn.get_table_pair('strategy', strat_id)
 
+
+    # # Clear All Values:
+
+    def clear_all_tables_values(self):
+        conn.update_trade_values('bybit_manual', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
+        conn.update_trade_values('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
+        conn.update_strat_values('1_min', 0, 0, 0, 0, 0)
+        conn.update_strat_values('9_min', 0, 0, 0, 0, 0)
+        conn.update_strat_values('16_min', 0, 0, 0, 0, 0)
+        conn.update_strat_values('30_min', 0, 0, 0, 0, 0)
+        conn.update_strat_trends('1_min', 'null', 'null', 'null', 'null')
+        conn.update_strat_trends('9_min', 'null', 'null', 'null', 'null')
+        conn.update_strat_trends('16_min', 'null', 'null', 'null', 'null')
+        conn.update_strat_trends('30_min', 'null', 'null', 'null', 'null')
+        print("Table Values Cleared")
 
     # def set_level(self):
     #     global level

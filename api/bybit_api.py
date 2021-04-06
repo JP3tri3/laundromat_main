@@ -14,12 +14,10 @@ class Bybit_Api:
         return self.key_input
 
     def my_wallet(self):
-        print(self.symbol)
         my_wallet = self.client.Wallet.Wallet_getBalance(
             coin=self.symbol).result()
-        # my_balance = my_wallet[0]['result']['btc']['available_balance']
-        # print(my_balance)
-        print(my_wallet)
+        my_balance = my_wallet[0]['result'][self.symbol]['available_balance']
+        print(my_balance)
 
 #symbol:
 
@@ -107,7 +105,7 @@ class Bybit_Api:
 
         try:
             if(order_type == 'Market'):
-                print(f"sending order {side} {self.symbol_pair} {order_type} {stop_loss}")
+                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
                                             qty=input_quantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
@@ -166,9 +164,9 @@ class Bybit_Api:
 
     #Calc Entry_Exit
 
-    def calc_last_gain(self, index):
+    def calc_last_gain(self, index, input_quantity):
         total = self.lastProfitLoss(index)
-        exit_price = float(self.calc_exit_price())
+        exit_price = float(self.get_exit_price(input_quantity))
         return round(float('%.10f' % total) * exit_price, 3)
 
     def calc_total_gain(self, input_quantity):
@@ -179,7 +177,7 @@ class Bybit_Api:
 
         while(flag == False):
             total_quantity += self.closed_profit_lossQuantity(index)
-            total += self.calc_last_gain(index)
+            total += self.calc_last_gain(index, input_quantity)
 
             if total_quantity < input_quantity:
                 index += 1
@@ -188,7 +186,7 @@ class Bybit_Api:
 
         return total
 
-    def get_total_coin(self, input_quantity):
+    def calc_total_coin(self, input_quantity):
         index = 0
         total_quantity = 0
         total = 0.0
@@ -206,7 +204,7 @@ class Bybit_Api:
 
         return ('%.10f' % total)
 
-    def get_entry_price(self):
+    def get_entry_price(self, input_quantity):
         index = 0
         divisible = 1
         last_entry_price = self.last_entry_price(index)
@@ -242,7 +240,7 @@ class Bybit_Api:
 
         while(flag == False):
             total_quantity += self.closed_profit_lossQuantity(index)
-            exit_price += lastexit_price
+            exit_price += last_exit_price
 
             if total_quantity < input_quantity:
                 index += 1

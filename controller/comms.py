@@ -62,7 +62,7 @@ def view_data(name_input, key_input):
         view_data(name, key)
 
 def update_data_persistent(data):
-        input_name = data['input_name']
+        table_id = data['input_name']
 
         last_candle_high = data['last_candle_high']
         last_candle_low = data['last_candle_low']
@@ -70,7 +70,7 @@ def update_data_persistent(data):
         wt1 = data['wt1']
         wt2 = data['wt2']
 
-        db().update_strat_values(input_name, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
+        db().update_strat_values(table_id, wt1, wt2, last_candle_high, last_candle_low, last_candle_vwap)        
 
 def update_data_on_alert(data):
         strat_id = data['name']
@@ -92,25 +92,13 @@ def clear_json(flag):
         update_display_data('test3_profit_loss', 0)        
         print("Display Cleared")
 
-# def logClosingNotes(side, entry_price, exit_price, percent_gain, stop_loss, total_gain, total_coin, total_number_trades, total_p_l)
-#         f = open("logs.txt", "a")
-#         f.write("Time: " + time) + "\n")
-#         f.write("Side: " + str(side) + "\n")
-#         f.write("Entry Price: " + str(entry_price) + "\n")
-#         f.write("Exit Price: " + str(exit_price) + "\n")
-#         f.write("Percent Gain: " + str(percent_gain) + "\n")
-#         f.write("SL: " + str(stop_loss) + "\n")
-#         f.write("$ Gain: " + str(total_gain) + "\n")
-#         f.write("Coin Gain: " + str(total_coin) + "\n")
-#         f.write("#Trades: " + str(total_number_trades) + "\n")
-#         f.write("Running Total: " + str(total_p_l) + "\n")
-#         f.write("\n")
-#         f.close()
-#         print("Logged Closing Details")
 
-def clear_logs(flag):
-    if(flag == True):
-        file = open("logs.txt","r+")
-        file.truncate(0)
-        file.close()
-        print("Logs Cleared")
+
+
+
+# def clear_logs(flag):
+#     if(flag == True):
+#         file = open("logs.txt","r+")
+#         file.truncate(0)
+#         file.close()
+#         print("Logs Cleared")
