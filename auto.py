@@ -3,7 +3,7 @@ sys.path.append("..")
 from database import config
 from api.bybit_api import Bybit_Api
 import controller.comms as comms
-from logic.strategy import Strategy
+from logic.strategy import Strategy_VWAP_Cross, Strategy_DCA
 from logic.calc import Calc as calc
 import database.sql_connector as conn
 from database.database import Database as db
@@ -18,11 +18,11 @@ api_key = config.BYBIT_TESTNET_API_KEY
 api_secret = config.BYBIT_TESTNET_API_SECRET
 leverage = 3
 symbol_pair = 'BTCUSD'
-input_quantity = 500
+input_quantity = 100 * leverage
 strat_id = '1_min'
 trade_id = 'bybit_auto_1'
-vwap_margin_neg = -7
-vwap_margin_pos = 7
+vwap_margin_neg = -10
+vwap_margin_pos = 10
 
 async def main():
 
@@ -44,16 +44,16 @@ async def main():
     else:
         print("Invalid Symbol Pair")
 
-    strat = Strategy(api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference, vwap_margin_neg, vwap_margin_pos)
+    # strat = Strategy_VWAP_Cross(api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference, vwap_margin_neg, vwap_margin_pos)
+
+    strat = Strategy_DCA(api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference)
     api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
 
     api.set_leverage(leverage)
 
     #initiate strategy:
-    strat.vwap_cross_strategy()
-                    
-
-
+    # strat.vwap_cross_strategy()
+    strat.dca_multi_position()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

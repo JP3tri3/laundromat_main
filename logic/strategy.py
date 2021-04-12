@@ -10,7 +10,7 @@ from database.database import Database as db
 from model.trades import Trade
 from time import time, sleep
 
-class Strategy:
+class Strategy_VWAP_Cross:
 
     def __init__(self, api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference, vwap_margin_neg_input, vwap_margin_pos_input):
         self.trade_id = trade_id
@@ -185,3 +185,60 @@ class Strategy:
 
 
 #check for order of last_trend verse new_trend
+
+class Strategy_DCA:
+
+    def __init__(self, api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference):
+        self.trade_id = trade_id
+        self.strat_id = strat_id
+        self.input_quantity = input_quantity
+        self.max_number_of_trades = 20
+        self.leverage = leverage
+        self.key_input = key_input
+        self.trade_record_id = 0
+
+        self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference)
+        self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
+
+    def dca_multi_position(self):
+        trade_amount = self.input_quantity
+
+        main_pos_entry = float(self.api.get_active_position_entry_price())
+        secondary_pos_entry = 0
+        max_number_of_trades = self.max_number_of_trades + 1
+
+        # self.tl.create_order()
+
+        number_of_trades = 0
+        starting_trade_amount = 1.0
+        final_position = 0
+
+        while (number_of_trades > max_number_of_trades) or (number_of_trades == 0):
+            number_of_trades = 0
+            position = starting_trade_amount
+            trade_amount = starting_trade_amount
+            
+
+            while (position < 100) or (number_of_trades == 0):
+                trade_amount = trade_amount * 1.05
+                position += (trade_amount)
+                number_of_trades += 1
+                print("Trade_amount: " + str(trade_amount))
+                print("Position size: " + str(position))
+                print("Number of trades: " + str(number_of_trades))
+                print("")
+
+            if(number_of_trades > self.max_number_of_trades):
+                starting_trade_amount += 0.5
+                final_position = position
+                print("")
+                print("")
+            else:
+                print("Final Trade Amount: ")
+                print(starting_trade_amount)
+                print("Final Pos Size: ")
+                print(final_position)
+
+
+
+

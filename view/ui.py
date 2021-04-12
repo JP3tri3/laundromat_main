@@ -1,10 +1,9 @@
 import sys
 sys.path.append("..")
-import config
+import database.config as config
 from api.bybit_api import Bybit_Api
 from logic.trade_logic import Trade_Logic
 from logic.calc import Calc as calc
-# import database.sql_connector as conn
 from database.database import Database as db
 
 class Ui:
@@ -30,14 +29,12 @@ class Ui:
             symbol = 'BTC'
             key_input = 0
             limit_price_difference = 0.50
-            # conn.update_trade_values(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
             db().update_trade_values(trade_id, 'manual', symbol, symbol_pair,  0, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
         elif (symbol_pair == "ETHUSD"):
             symbol = 'ETH'
             key_input = 1
             limit_price_difference = 0.05
-            # conn.update_trade_values(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
             db().update_trade_values(trade_id, 'manual', symbol, key_input, 1, limit_price_difference, leverage, input_quantity, 'empty', 0, 0, 0)
 
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, key_input)
@@ -129,10 +126,10 @@ class Ui:
                 self.tl.active_position_check()
 
             elif(taskInput == "test"):
-                print(self.tl.testOrder())
+                self.api.get_orders_id_and_price()
 
             elif(taskInput == "test1"):
-                print(self.tl.active_position_check())
+                print(db().get_strat_values('1_min'))
 
             elif(taskInput == "change"):
                 flag = False

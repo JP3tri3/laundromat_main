@@ -69,11 +69,23 @@ class Bybit_Api:
             print("an exception occured - {}".format(e))
             return False
 
-
     def cancel_all_orders(self):
         print("Cancelling All Orders...")
         self.client.Order.Order_cancelAll(symbol=self.symbol).result()
 
+
+    def get_orders_id_and_price(self):
+        active_orders = self.get_order()
+        kv_dict = {}
+        index = 0
+
+        for x in range(len(active_orders)):
+            order = active_orders[x]
+            index +=1
+
+            kv_dict[str(index)] = {'price':  order['price'], 'order_id': order['order_id']} 
+
+        return kv_dict    
 
 #position:
     def get_position_result(self):
@@ -99,6 +111,10 @@ class Bybit_Api:
     def get_active_position_entry_price(self):
         position_result = self.get_position_result()
         return float(position_result['entry_price'])
+
+    def get_position_entry_price(self):
+        position_result = self.get_position_result()
+        return position_result['entry_price']
 
 #orders:
     def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
