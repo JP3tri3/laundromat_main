@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 import mysql.connector
-import config
+from database import config
 import datetime
 
 db = mysql.connector.connect(
@@ -17,7 +17,7 @@ mycursor = db.cursor()
 # # create table:
 # mycursor.execute("CREATE TABLE Strategy (id VARCHAR(50), wt1 DECIMAL, wt2 DECIMAL, last_candle_high DECIMAL, last_candle_low DECIMAL, last_candle_vwap DECIMAL, active_position VARCHAR(50), new_trend VARCHAR(50), last_trend VARCHAR(50), active_trend VARCHAR(50))")
 # mycursor.execute("CREATE TABLE trades (id VARCHAR(50),  strat_id VARCHAR(50), symbol VARCHAR(50), symbol_pair VARCHAR(50), key_input INT, limit_price_difference FLOAT, leverage INT, input_quantity INT, side VARCHAR(8), stop_loss FLOAT, percent_gain DECIMAL, trade_record_id INT)")
-# mycursor.execute("CREATE TABLE trade_records (trade_record_id INT UNSIGNED, trade_id VARCHAR(16), strat_id VARCHAR(16), symbol_pair VARCHAR(50), side VARCHAR(8), input_quantity INT UNSIGNED, entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain VARCHAR(24), dollar_gain VARCHAR(24), coin_gain VARCHAR(24), total_p_l_dollar VARCHAR(24), total_p_l_coin VARCHAR(24), time VARCHAR(50))")
+# mycursor.execute("CREATE TABLE trade_records (id INT UNSIGNED, trade_id VARCHAR(16), strat_id VARCHAR(16), symbol_pair VARCHAR(50), side VARCHAR(8), input_quantity INT UNSIGNED, entry_price FLOAT UNSIGNED, exit_price FLOAT UNSIGNED, stop_loss FLOAT UNSIGNED, percent_gain VARCHAR(24), dollar_gain VARCHAR(24), coin_gain VARCHAR(24), total_p_l_dollar VARCHAR(24), total_p_l_coin VARCHAR(24), time VARCHAR(50))")
 
 # # describe table details:
 # mycursor.execute("DESCRIBE Strategy")
@@ -40,6 +40,7 @@ mycursor = db.cursor()
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_2', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
 # mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_3', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
+# mycursor.execute("INSERT INTO trades () VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", ('bybit_auto_4', 'empty', 'empty', 'empty', 0, 0.0, 0, 0, 'empty', 0, 0, 0))
 
 # db.commit()
 # mycursor.execute("SELECT * FROM Strategy")
@@ -128,6 +129,16 @@ def delete_trade_records():
 def viewDbValue(table_name, id_name, column_name):
     try: 
         query = "SELECT " + str(column_name) + " FROM " +str(table_name)+ " WHERE id = '" + str(id_name) + "'"
+        mycursor.execute(query)
+        result = mycursor.fetchall()
+        db.commit()
+        return result[0][0]
+    except mysql.connector.Error as error:
+        print("Failed to retrieve record from database: {}".format(error))
+
+def view_db_values_multiple(table_name, id_name_1, id_name_2, column_name):
+    try: 
+        query = "SELECT " + str(column_name) + " FROM " +str(table_name)+ " WHERE id = '" + str(id_name_1) + "' AND trade_id = '" + str(id_name_2) + "'"
         mycursor.execute(query)
         result = mycursor.fetchall()
         db.commit()

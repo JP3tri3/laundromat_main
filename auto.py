@@ -16,7 +16,7 @@ import asyncio
 
 api_key = config.BYBIT_TESTNET_API_KEY
 api_secret = config.BYBIT_TESTNET_API_SECRET
-leverage = 3
+leverage = 5
 symbol_pair = 'BTCUSD'
 input_quantity = 100 * leverage
 strat_id = '1_min'
@@ -27,9 +27,9 @@ vwap_margin_pos = 10
 async def main():
 
     #input true to clear:
-    db().clear_all_tables_values(True)
-    db().delete_trade_records(True)
-    comms.clear_json(True)
+    # db().clear_all_tables_values(True)
+    # db().delete_trade_records(True)
+    # comms.clear_json(True)
 
     if (symbol_pair == "BTCUSD"):
         symbol = 'BTC'
@@ -53,7 +53,7 @@ async def main():
 
     #initiate strategy:
     # strat.vwap_cross_strategy()
-    strat.dca_multi_position()
+    strat.dca_multi_position('Buy')
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

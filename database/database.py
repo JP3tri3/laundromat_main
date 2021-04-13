@@ -115,6 +115,9 @@ class Database:
             print("Maintaining Trade Records...")
             return 0
 
+    def get_trade_record_value(self, trade_record_id, trade_id, column_name):
+        return conn.view_db_values_multiple('trade_records', trade_record_id, trade_id, column_name)
+
     # # table dicts:
 
     def get_trade_values(self, trade_id):
@@ -124,20 +127,24 @@ class Database:
         return conn.get_table_pair('strategy', strat_id)
 
 
+
     # # Clear All Values:
 
-    def clear_all_tables_values(self):
-        conn.update_trade_values('bybit_manual', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
-        conn.update_trade_values('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
-        conn.update_strat_values('1_min', 0, 0, 0, 0, 0)
-        conn.update_strat_values('9_min', 0, 0, 0, 0, 0)
-        conn.update_strat_values('16_min', 0, 0, 0, 0, 0)
-        conn.update_strat_values('30_min', 0, 0, 0, 0, 0)
-        conn.update_strat_trends('1_min', 'null', 'null', 'null', 'null')
-        conn.update_strat_trends('9_min', 'null', 'null', 'null', 'null')
-        conn.update_strat_trends('16_min', 'null', 'null', 'null', 'null')
-        conn.update_strat_trends('30_min', 'null', 'null', 'null', 'null')
-        print("Table Values Cleared")
+    def clear_all_tables_values(self, flag):
+        if(flag == True):
+            print("Clearing Trade & Strat Table Values...")
+            conn.update_trade_values('bybit_manual', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
+            conn.update_trade_values('bybit_auto_1', 'empty', 'empty', 'empty', 0, 0, 0, 0, 'empty', 0, 0, 0)
+            conn.update_strat_values('1_min', 0, 0, 0, 0, 0)
+            conn.update_strat_values('9_min', 0, 0, 0, 0, 0)
+            conn.update_strat_values('16_min', 0, 0, 0, 0, 0)
+            conn.update_strat_values('30_min', 0, 0, 0, 0, 0)
+            conn.update_strat_trends('1_min', 'null', 'null', 'null', 'null')
+            conn.update_strat_trends('9_min', 'null', 'null', 'null', 'null')
+            conn.update_strat_trends('16_min', 'null', 'null', 'null', 'null')
+            conn.update_strat_trends('30_min', 'null', 'null', 'null', 'null')
+        else:
+            print("Maintaining Trade & Strat Table Values...")
 
     # def set_level(self):
     #     global level

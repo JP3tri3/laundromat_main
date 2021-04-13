@@ -192,53 +192,77 @@ class Strategy_DCA:
         self.trade_id = trade_id
         self.strat_id = strat_id
         self.input_quantity = input_quantity
-        self.max_number_of_trades = 20
+        self.max_number_of_trades = 12
         self.leverage = leverage
         self.key_input = key_input
         self.trade_record_id = 0
+        self.limit_price_difference = limit_price_difference
 
         self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference)
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
 
-    def dca_multi_position(self):
-        trade_amount = self.input_quantity
+    def dca_multi_position(self, side):
 
-        main_pos_entry = float(self.api.get_active_position_entry_price())
-        secondary_pos_entry = 0
-        max_number_of_trades = self.max_number_of_trades + 1
-
+        
+        trade_amount_percent_difference = 0.10
+        profit_percent = 0.01
         # self.tl.create_order()
 
+
+        #Determine Trade amount
         number_of_trades = 0
-        starting_trade_amount = 1.0
+        safety_trade_amount = 1
         final_position = 0
 
-        while (number_of_trades > max_number_of_trades) or (number_of_trades == 0):
-            number_of_trades = 0
-            position = starting_trade_amount
-            trade_amount = starting_trade_amount
-            
+        while (number_of_trades > self.max_number_of_trades) or (number_of_trades == 0):
+            number_of_trades = 1
+            position = safety_trade_amount
+            # print("POS OUTSIDE " + str(position))
+            trade_amount = safety_trade_amount            
 
-            while (position < 100) or (number_of_trades == 0):
-                trade_amount = trade_amount * 1.05
-                position += (trade_amount)
+            while (position < self.input_quantity) or (number_of_trades == 0):
+                trade_amount = trade_amount * (trade_amount_percent_difference + 1)
+                position += trade_amount
                 number_of_trades += 1
-                print("Trade_amount: " + str(trade_amount))
-                print("Position size: " + str(position))
-                print("Number of trades: " + str(number_of_trades))
-                print("")
+                # print("Num Trades: " + str(number_of_trades))
+                # print("Pos: " + str(position))
+                # print("Trade Amount: " + str(trade_amount))
 
             if(number_of_trades > self.max_number_of_trades):
-                starting_trade_amount += 0.5
+                safety_trade_amount += 0.5
                 final_position = position
-                print("")
-                print("")
+                # print("Starting Trade Amount: " + str(starting_trade_amount))
             else:
-                print("Final Trade Amount: ")
-                print(starting_trade_amount)
-                print("Final Pos Size: ")
+                print("Starting Trade Amount: ")
+                print(safety_trade_amount)
                 print(final_position)
 
+        active_trade_amount = safety_trade_amount
+        main_pos_entry = 0
+        secondary_pos_entry = 0
 
+        if (side == 'Buy'):
+            #create initial Main Pos limit order:
+            # self.tl.create_limit_order(self.api.last_price() - self.limit_price_difference, 'Buy', active_trade_amount, 0, False)
+            # print("Forcing Main Pos Limit Order")
+            # self.tl.force_limit_order(side)
+            #TEST W/ MARKET:
+            self.api.place_order(self.api.last_price(), 'Market', 'Buy', active_trade_amount, 0, 'PostOnly', False)
+            print("Main Pos Entry: " + str(self.api.get_active_position_entry_price()))
+            main_pos_entry = float(self.api.get_active_position_entry_price())
 
+            #create initial limit sell order:
+            price = calc().calc_percent_above(self.api.get_active_position_entry_price(), profit_percent)
+            # print("SELL PRICE: " + str(price))
+            self.api.place_order(price, 'Limit', 'Sell', active_trade_amount, 0, 'PostOnly', True)
 
+            # price = calc().calc_percent_above(self.api.get_active_position_entry_price(), profit_percent)
+            # self.tl.create_limit_order(price, 'Sell', safety_trade_amount, 0, True)
+            # print(self.api.get_orders_id_and_price())
+            
+            # #create Secondary Pos limit Buy orders:
+            # price = calc().calc_percent_below(self.api.get_active_position_entry_price(), profit_percent)
+            # self.tl.create_limit_order(price, 'Buy', active_trade_amount, 0, False)
+            # price = calc().calc_percent_below(self.api.get_active_position_entry_price(), profit_percent * 2)
+            # self.tl.create_limit_order(price, 'Buy', active_trade_amount, 0, False)
+            # print(self.api.get_orders_id_and_price())

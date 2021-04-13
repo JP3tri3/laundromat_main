@@ -117,17 +117,17 @@ class Bybit_Api:
         return position_result['entry_price']
 
 #orders:
-    def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
+    def place_order(self, price, order_type, side, input_quantity, stop_loss, time_in_force, reduce_only):
 
         try:
             if(order_type == 'Market'):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
-                                            qty=input_quantity, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, time_in_force=time_in_force, stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=input_quantity, price=price, time_in_force="PostOnly", stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, price=price, time_in_force=time_in_force, stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:

@@ -123,13 +123,13 @@ class Ui:
 
             elif(taskInput == "position"):
                 print("Position: ")
-                self.tl.active_position_check()
+                self.tl.force_limit_order('Buy')
 
             elif(taskInput == "test"):
-                self.api.get_orders_id_and_price()
-
+                self.api.place_order(self.api.last_price(), 'Market', 'Buy', 100, 0, 'PostOnly', False)
+                
             elif(taskInput == "test1"):
-                print(db().get_strat_values('1_min'))
+                self.api.place_order(self.api.last_price() + 100, 'Limit', 'Sell', 100, 0, 'PostOnly', True)
 
             elif(taskInput == "change"):
                 flag = False

@@ -17,7 +17,15 @@ class Calc:
         return(float(entry_price) * 0.01) / leverage
 
     def calc_one_percent(self, leverage, last_price):
-        return(float(last_price) * 0.01) / leverage        
+        return(float(last_price) * 0.01) / leverage
+
+    def calc_percent_above(self, entry_price, percent):
+        percent += 1
+        return(float(entry_price) * percent)
+
+    def calc_percent_below(self, entry_price, percent):
+        percent = (1 - percent)
+        return(float(entry_price) * percent)
            
     def calc_percent_gained(self, side, entry_price, last_price, leverage):
         try:
