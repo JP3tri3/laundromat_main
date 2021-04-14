@@ -76,16 +76,14 @@ class Bybit_Api:
 
     def get_orders_id_and_price(self):
         active_orders = self.get_order()
-        kv_dict = {}
+        kv_list = []
         index = 0
 
         for x in range(len(active_orders)):
             order = active_orders[x]
             index +=1
-
-            kv_dict[str(index)] = {'price':  order['price'], 'order_id': order['order_id']} 
-
-        return kv_dict    
+            kv_list.append({'side': order['side'], 'price':  order['price'], 'order_id': order['order_id']})
+        return kv_list    
 
 #position:
     def get_position_result(self):
@@ -135,8 +133,8 @@ class Bybit_Api:
             return False
         return order
 
-    def change_order_price(self, price):
-        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=str(self.get_order_id()), p_r_price=str(price)).result()
+    def change_order_price(self, price, order_id):
+        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_price=str(price)).result()
         return order
 
 #Leverage

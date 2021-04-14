@@ -74,7 +74,8 @@ class Strategy_VWAP_Cross:
             if (new_trend == 'cross_up') or (new_trend == 'cross_down'):
                 if (active_trend != 'null') and (active_trend != new_trend):
                     db().set_active_position(self.strat_id, 'change')
-                if ((self.last_trend == 'cross_up') and (new_trend == 'cross_down')) or ((self.last_trend == 'cross_down') and (new_trend == 'cross_up')):
+                if ((self.last_trend == 'cross_up') and (new_trend == 'cross_down')) \
+                    or ((self.last_trend == 'cross_down') and (new_trend == 'cross_up')):
                     db().set_new_trend(self.strat_id, new_trend)
 
             db().set_new_trend(self.strat_id, new_trend)
@@ -203,9 +204,8 @@ class Strategy_DCA:
 
     def dca_multi_position(self, side):
 
-        
         trade_amount_percent_difference = 0.10
-        profit_percent = 0.01
+        
         # self.tl.create_order()
 
 
@@ -229,7 +229,7 @@ class Strategy_DCA:
                 # print("Trade Amount: " + str(trade_amount))
 
             if(number_of_trades > self.max_number_of_trades):
-                safety_trade_amount += 0.5
+                safety_trade_amount += 0.2
                 final_position = position
                 # print("Starting Trade Amount: " + str(starting_trade_amount))
             else:
@@ -237,7 +237,10 @@ class Strategy_DCA:
                 print(safety_trade_amount)
                 print(final_position)
 
-        active_trade_amount = safety_trade_amount
+        #Set Trade Values
+        profit_percent = 0.0025
+        max_active_open_orders = 5
+        active_trade_amount = 0
         main_pos_entry = 0
         secondary_pos_entry = 0
 
@@ -247,22 +250,78 @@ class Strategy_DCA:
             # print("Forcing Main Pos Limit Order")
             # self.tl.force_limit_order(side)
             #TEST W/ MARKET:
-            self.api.place_order(self.api.last_price(), 'Market', 'Buy', active_trade_amount, 0, 'PostOnly', False)
+            self.api.place_order(self.api.last_price(), 'Market', 'Buy', safety_trade_amount, 0, 'PostOnly', False)
             print("Main Pos Entry: " + str(self.api.get_active_position_entry_price()))
             main_pos_entry = float(self.api.get_active_position_entry_price())
 
             #create initial limit sell order:
-            price = calc().calc_percent_above(self.api.get_active_position_entry_price(), profit_percent)
-            # print("SELL PRICE: " + str(price))
-            self.api.place_order(price, 'Limit', 'Sell', active_trade_amount, 0, 'PostOnly', True)
+            price = calc().calc_percent_above(main_pos_entry, profit_percent)
+            print(price)
+            print(self.api.last_price())
+            print("SELL PRICE: " + str(price))
+            self.api.place_order(price, 'Limit', 'Sell', safety_trade_amount, 0, 'PostOnly', True)
 
-            # price = calc().calc_percent_above(self.api.get_active_position_entry_price(), profit_percent)
-            # self.tl.create_limit_order(price, 'Sell', safety_trade_amount, 0, True)
-            # print(self.api.get_orders_id_and_price())
+            #calculate and create open orders below Main pos:
+            percent_spread = profit_percent / max_active_open_orders
+            secondary_trade_amount = safety_trade_amount / max_active_open_orders
+
+            for i in range(1, max_active_open_orders + 1):
+                price = calc().calc_percent_below(main_pos_entry, profit_percent * i)
+                self.api.place_order(price, 'Limit', 'Buy', secondary_trade_amount, 0, 'PostOnly', False)
+
+                print(str(i) + ": Secondary Pos Price: " + str(price))
+
+            # self.api.change_order_price(self.api.last_price() - 300, buy_order_1['order_id'])
+
+            #check for active Main position:
+            flag = True
             
-            # #create Secondary Pos limit Buy orders:
-            # price = calc().calc_percent_below(self.api.get_active_position_entry_price(), profit_percent)
-            # self.tl.create_limit_order(price, 'Buy', active_trade_amount, 0, False)
-            # price = calc().calc_percent_below(self.api.get_active_position_entry_price(), profit_percent * 2)
-            # self.tl.create_limit_order(price, 'Buy', active_trade_amount, 0, False)
-            # print(self.api.get_orders_id_and_price())
+            while (flag == True):
+            # while (self.tl.active_position_check == 1):
+                #check for active order changes:
+                closest_open_order = 0
+                
+                order_list = self.api.get_orders_id_and_price()
+                open_orders_list = []
+                close_orders_list = []
+
+                #Separate order_list
+                for x in range(len(order_list)):
+                    if (order_list[x]['side'] == 'Buy'):
+                        open_orders_list.append(order_list[x])
+                        if(order_list[x]['price']) > str(closest_open_order):
+                            closest_open_order = order_list[x]['price']
+                    else:
+                        close_orders_list.append(order_list[x])
+
+                #check for open order change:
+                if (self.check_open_order_change(open_orders_list, closest_open_order) == True):
+                    print("break")
+                    flag = False
+
+            print("OPEN")
+            print(open_orders_list)
+            print("CLOSE")
+            print(close_orders_list)
+                # for x in range(len(order_list)):
+                #     check_price = order_list[x]['price']
+                #     if 
+
+
+    def check_open_order_change(self, open_orders_list, closest_open_order):
+        order_change_check = True
+        print("Checking")
+        for x in range(len(open_orders_list)):
+            print(x)
+            if (open_orders_list[x]['price'] == closest_open_order):
+                print(closest_open_order)
+                order_change_check = False
+                break
+            
+            if (order_change_check == True):
+                print("ORDER CLOSED")
+                print(order_change_check)
+            
+        return order_change_check
+
+

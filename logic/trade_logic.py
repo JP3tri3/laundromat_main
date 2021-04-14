@@ -55,7 +55,7 @@ class Trade_Logic:
                     print("price: " + str(price))
                     current_price = self.api.last_price()
                     price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
-                    self.api.change_order_price(price)
+                    self.api.change_order_price(price, self.api.get_order_id())
                     print("Order Price Updated: " + str(price))
                     print("")
                 sleep(0.5)

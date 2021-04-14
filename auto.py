@@ -53,7 +53,9 @@ async def main():
 
     #initiate strategy:
     # strat.vwap_cross_strategy()
+    print("STARTING dca_multi_position STRAT")
     strat.dca_multi_position('Buy')
+    print("CLOSING dca_multi_position STRAT")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

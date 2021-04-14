@@ -21,12 +21,12 @@ class Calc:
 
     def calc_percent_above(self, entry_price, percent):
         percent += 1
-        return(float(entry_price) * percent)
+        return(round(entry_price * percent, 2))
 
     def calc_percent_below(self, entry_price, percent):
         percent = (1 - percent)
-        return(float(entry_price) * percent)
-           
+        return(round(entry_price * percent, 2))
+
     def calc_percent_gained(self, side, entry_price, last_price, leverage):
         try:
             difference = (last_price - entry_price) if(side == "Buy") \
