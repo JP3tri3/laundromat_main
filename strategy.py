@@ -204,74 +204,85 @@ class Strategy_DCA:
 
     def dca_multi_position(self, side):
 
-        trade_amount_percent_difference = 0.10
+        # trade_amount_percent_difference = 0.10
         
-        # self.tl.create_order()
-
-
         #Determine Trade amount
-        number_of_trades = 0
-        safety_trade_amount = 1
-        final_position = 0
+        # number_of_trades = 0
 
-        while (number_of_trades > self.max_number_of_trades) or (number_of_trades == 0):
-            number_of_trades = 1
-            position = safety_trade_amount
-            # print("POS OUTSIDE " + str(position))
-            trade_amount = safety_trade_amount            
+        # final_position = 0
 
-            while (position < self.input_quantity) or (number_of_trades == 0):
-                trade_amount = trade_amount * (trade_amount_percent_difference + 1)
-                position += trade_amount
-                number_of_trades += 1
-                # print("Num Trades: " + str(number_of_trades))
-                # print("Pos: " + str(position))
-                # print("Trade Amount: " + str(trade_amount))
+        # while (number_of_trades > self.max_number_of_trades) or (number_of_trades == 0):
+        #     number_of_trades = 1
+        #     position = safety_trade_amount
+        #     # print("POS OUTSIDE " + str(position))
+        #     trade_amount = safety_trade_amount            
 
-            if(number_of_trades > self.max_number_of_trades):
-                safety_trade_amount += 0.2
-                final_position = position
-                # print("Starting Trade Amount: " + str(starting_trade_amount))
-            else:
-                print("Starting Trade Amount: ")
-                print(safety_trade_amount)
-                print(final_position)
+        #     while (position < self.input_quantity) or (number_of_trades == 0):
+        #         trade_amount = trade_amount * (trade_amount_percent_difference + 1)
+        #         position += trade_amount
+        #         number_of_trades += 1
+        #         # print("Num Trades: " + str(number_of_trades))
+        #         # print("Pos: " + str(position))
+        #         # print("Trade Amount: " + str(trade_amount))
+
+        #     if(number_of_trades > self.max_number_of_trades):
+        #         safety_trade_amount += 0.2
+        #         final_position = position
+        #         # print("Starting Trade Amount: " + str(starting_trade_amount))
+        #     else:
+        #         print("Starting Trade Amount: ")
+        #         print(safety_trade_amount)
+        #         print(final_position)
+
+    
+        available_trades = self.max_number_of_trades
+        available_input_quantity = self.input_quantity
+        safety_trade_amount = available_input_quantity / available_trades
 
         #Set Trade Values
+
         profit_percent = 0.0025
+        percent_rollover = 0.05
         max_active_open_orders = 5
-        active_trade_amount = 0
+
+        current_active_open_orders = 0
+        current_active_close_orders = 0
+        used_input_quantity = 0
         main_pos_entry = 0
-        secondary_pos_entry = 0
+        # secondary_pos_entry = 0
 
         if (side == 'Buy'):
-            #create initial Main Pos limit order:
+            #create initial Main Pos limit order w/ Force Limit:
             # self.tl.create_limit_order(self.api.last_price() - self.limit_price_difference, 'Buy', active_trade_amount, 0, False)
             # print("Forcing Main Pos Limit Order")
             # self.tl.force_limit_order(side)
             #TEST W/ MARKET:
+
             self.api.place_order(self.api.last_price(), 'Market', 'Buy', safety_trade_amount, 0, False)
-            print("Main Pos Entry: " + str(self.api.get_active_position_entry_price()))
+            
             main_pos_entry = float(self.api.get_active_position_entry_price())
 
             #create initial limit sell order:
-            price = calc().calc_percent_above(main_pos_entry, profit_percent)
+            price = calc().calc_percent_difference('long', 'close', main_pos_entry, profit_percent)
             print(price)
             print(self.api.last_price())
             print("SELL PRICE: " + str(price))
             self.api.place_order(price, 'Limit', 'Sell', safety_trade_amount, 0, True)
+            
+            current_active_close_orders += 1
+
 
             #calculate and create open orders below Main pos:
             percent_spread = profit_percent / max_active_open_orders
             secondary_trade_amount = safety_trade_amount / max_active_open_orders
 
+            secondary_pos_price = main_pos_entry
             for i in range(1, max_active_open_orders + 1):
-                price = calc().calc_percent_below(main_pos_entry, profit_percent * i)
+                price = calc().calc_percent_difference('long', 'open', secondary_pos_price, profit_percent)
                 self.api.place_order(price, 'Limit', 'Buy', secondary_trade_amount, 0, False)
+                secondary_pos_price = price
 
                 print(str(i) + ": Secondary Pos Price: " + str(price))
-
-            # self.api.change_order_price(self.api.last_price() - 300, buy_order_1['order_id'])
 
             #check for active Main position:
             # flag = True
@@ -284,14 +295,35 @@ class Strategy_DCA:
             closest_open_order = self.get_closest_order_to_position('Buy', orders_dict['Buy'])
             closest_close_order = self.get_closest_order_to_position('Sell', orders_dict['Sell'])
 
+            used_input_quantity = self.get_used_input_quantity(orders_dict['input_quantity'])
+            ("ORDERS INPUT QTY DICT")
+            print(orders_dict['input_quantity'])
+
             #check for order change:
-            while(self.check_order_change(orders_dict['Buy'], closest_open_order) == False) \
-                and (self.check_order_change(orders_dict['Sell'], closest_close_order) == False):
+            while(True):
+                if (self.check_order_change(orders_dict['Buy'], closest_open_order) == True):
+                    print("Buy order added")
+
+                    #create new secondary close order:
+                    input_quantity = safety_trade_amount * (1 - percent_rollover)
+                    new_close_price = calc().calc_percent_difference('long', 'close', closest_open_order, profit_percent)
+                    main_pos_entry = float(self.api.get_position_entry_price())
+                    if(new_close_price < main_pos_entry) and (new_close_price > self.api.last_price()):
+                        self.api.place_order(new_close_price, 'Limit', 'Sell', input_quantity, 0, True)
+                        
+                    break
+
+
+                elif (self.check_order_change(orders_dict['Sell'], closest_close_order) == True):
+                    print("Position closed")
+                    #create new secondary close order:
+
+
+
+                    break
 
                 sleep(2)
                 orders_dict = self.get_orders_dict()
-                print(orders_dict)
-
 
             #TEST:
             print("!!!!!!")
@@ -303,23 +335,35 @@ class Strategy_DCA:
             self.api.cancel_all_orders()
             self.tl.close_position_market()
 
+    def get_current_active_open_orders(self):
+        ################### FINISH Setting up Getting Active Orders
+
+    # get current amount of input quantity in open orders
+    def get_used_input_quantity(self, input_quantity_list):
+        input_quantity = 0
+        for x in range(len(input_quantity_list)):
+            input_quantity += input_quantity_list[x]
+        return input_quantity
+
     #retreive orders & separate into dict
     def get_orders_dict(self):
         order_list = self.api.get_orders_id_and_price()
         open_orders_list = []
         close_orders_list = []
+        input_quantity_list = []
 
         order_list_kv = {}
 
         for x in range(len(order_list)):
             if (order_list[x]['side'] == 'Buy'):
                 open_orders_list.append(order_list[x])
+                input_quantity_list.append(order_list[x]['input_quantity'])
             else:
                 close_orders_list.append(order_list[x])
 
         order_list_kv['Buy'] = open_orders_list
         order_list_kv['Sell'] = close_orders_list
-
+        order_list_kv['input_quantity'] = input_quantity_list
         return order_list_kv
 
     #get closest order
@@ -345,13 +389,12 @@ class Strategy_DCA:
         for x in range(len(orders_list)):
             price = float(orders_list[x]['price'])
             if (price == closest_order):
-                print(closest_order)
                 order_change_check = False
+                break
 
         if (order_change_check == True):
             print("")
             print("ORDER CLOSED")
-            print(order_change_check)
 
         return order_change_check
 
