@@ -92,7 +92,7 @@ class Trade_Logic:
                 if ((self.active_order_check() == 0) and (self.active_position_check() == 0)):
                     print("Attempting to place order...")
                     entry_price = calc().calc_limit_price_difference(side_input, self.api.last_price(), self.limit_price_difference)
-                    self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=input_quantity, stop_loss=initial_stop_loss, time_in_force='PostOnly', reduce_only=False)
+                    self.api.place_order(price=entry_price, order_type=order_type, side=side_input, input_quantity=input_quantity, stop_loss=initial_stop_loss, reduce_only=False)
 
                     if(order_type == 'Limit') and (self.active_order_check() == 1):
                         print("")

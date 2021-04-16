@@ -52,6 +52,7 @@ class Bybit_Api:
         return float(keys[self.key_input]['last_price'])
 
 #order:
+
     def get_order(self):
         active_order = self.client.Order.Order_query(symbol=self.symbol_pair).result()
         order = active_order[0]['result']
@@ -69,10 +70,18 @@ class Bybit_Api:
             print("an exception occured - {}".format(e))
             return False
 
-    def cancel_all_orders(self):
-        print("Cancelling All Orders...")
-        self.client.Order.Order_cancelAll(symbol=self.symbol).result()
+    def cancel_order(self, order_id):
+        print("Cancelling Order: " + order_id)
+        self.client.Order.Order_cancel(symbol="BTCUSD", order_id=order_id).result()
 
+    def cancel_all_orders(self):
+        # Cancel all API call: doesn't seem to be working / double check the following:
+        # self.client.Order.Order_cancelAll(symbol=self.symbol).result()
+        print("Cancelling All Orders...")
+        orders_list = self.get_orders_id_and_price()
+        for x in range(len(orders_list)):
+            order_id = orders_list[x]['order_id']
+            self.cancel_order(order_id)
 
     def get_orders_id_and_price(self):
         active_orders = self.get_order()
@@ -82,7 +91,7 @@ class Bybit_Api:
         for x in range(len(active_orders)):
             order = active_orders[x]
             index +=1
-            kv_list.append({'side': order['side'], 'price':  order['price'], 'order_id': order['order_id']})
+            kv_list.append({'side': order['side'], 'price':  order['price'], 'input_quantity': order['qty'], 'order_id': order['order_id']})
         return kv_list    
 
 #position:
@@ -115,17 +124,17 @@ class Bybit_Api:
         return position_result['entry_price']
 
 #orders:
-    def place_order(self, price, order_type, side, input_quantity, stop_loss, time_in_force, reduce_only):
+    def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
 
         try:
             if(order_type == 'Market'):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
-                                            qty=input_quantity, time_in_force=time_in_force, stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=input_quantity, price=price, time_in_force=time_in_force, stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:

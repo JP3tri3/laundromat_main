@@ -3,7 +3,7 @@ sys.path.append("..")
 from database import config
 from api.bybit_api import Bybit_Api
 import controller.comms as comms
-from logic.strategy import Strategy_VWAP_Cross, Strategy_DCA
+from strategies.dca import Strategy_DCA
 from logic.calc import Calc as calc
 import database.sql_connector as conn
 from database.database import Database as db
@@ -28,7 +28,7 @@ async def main():
 
     #input true to clear:
     # db().clear_all_tables_values(True)
-    # db().delete_trade_records(True)
+    db().delete_trade_records(True)
     # comms.clear_json(True)
 
     if (symbol_pair == "BTCUSD"):

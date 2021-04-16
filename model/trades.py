@@ -10,7 +10,7 @@ class Trade:
         self.trade_id = trade_id
         self.trade_record_id = trade_record_id
 
-    def commit_trade_record(self, coin_gain, dollar_gain, entry_price, exit_price, percent_gain):
+    def commit_trade_record(self, coin_gain, dollar_gain, entry_price, exit_price, percent_gain, input_quantity):
 
         kv_dict = db().get_trade_values(self.trade_id)
 

@@ -19,12 +19,13 @@ class Calc:
     def calc_one_percent(self, leverage, last_price):
         return(float(last_price) * 0.01) / leverage
 
-    def calc_percent_above(self, entry_price, percent):
-        percent += 1
-        return(round(entry_price * percent, 2))
-
-    def calc_percent_below(self, entry_price, percent):
-        percent = (1 - percent)
+    def calc_percent_difference(self, long_short, entry_exit, entry_price, percent):
+        if ((long_short == 'long') and (entry_exit == 'entry')) or ((long_short == 'short') and (entry_exit == 'exit')):
+            percent = (1 - percent)
+        elif ((long_short == 'long') and (entry_exit == 'exit')) or ((long_short == 'short') and (entry_exit == 'entry')):
+            percent += 1
+        else:
+            print("Somethings Fucking Wrong with calc_percent_difference")
         return(round(entry_price * percent, 2))
 
     def calc_percent_gained(self, side, entry_price, last_price, leverage):
@@ -41,3 +42,4 @@ class Calc:
     def calc_limit_price_difference(self, side, last_price, limit_price_difference):
         return (last_price - limit_price_difference) if (side == 'Buy') \
             else (last_price + limit_price_difference)
+
