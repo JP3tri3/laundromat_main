@@ -103,7 +103,7 @@ class Strategy_DCA:
             secondary_entry_input_quantity = safety_trade_amount / max_active_open_orders
             secondary_entry_price = main_pos_entry
 
-            orders_dict = self.get_orders_dict(entry_side, exit_side)
+            orders_dict = self.get_orders_dict(entry_side)
 
             
             active_open_orders = len(orders_dict[side])
@@ -114,13 +114,18 @@ class Strategy_DCA:
             print(available_orders)
 
             if (available_orders >= 0):
-
+                print('active open orders range: ')
+                print(range(active_open_orders))
+                print("Pre-change Orders: ")
+                print(print(orders_dict[entry_side]))
                 for x in range(active_open_orders):
-                    order_id = orders_dict[entry_side][x]['order_id']
+                    i = (active_open_orders - x) -1
+                    order_id = orders_dict[entry_side][i]['order_id']
                     price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
                     print(str(x + 1) + ": Secondary Pos Change Order Price: " + str(price))
-                    self.api.change_order_price(secondary_entry_price, order_id)
+                    self.api.change_order_price(price, order_id)
                     secondary_entry_price = price
+                    print("")
 
                 for x in range(available_orders):
                     price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
@@ -134,15 +139,27 @@ class Strategy_DCA:
             while (self.tl.active_position_check() == 1):
                 print("In active pos loop")
                 (print(""))
-                #pull open orders & closest open:                
-                orders_dict = self.get_orders_dict(entry_side, exit_side)
 
-                closest_entry_order = self.get_closest_order_to_position(entry_side, orders_dict[entry_side])
-                closest_exit_order = self.get_closest_order_to_position(exit_side, orders_dict[exit_side])
+                #pull open orders & closest open:           
+                orders_dict = self.get_orders_dict(entry_side)
+                
+                if (len(orders_dict[entry_side]) == 0):
+                    closest_entry_price = 0
+                else:
+                    closest_entry_price = orders_dict[entry_side][0]['price']
+                    print("Closest Entry Price: ")
+                    print(closest_entry_price)
+
+                if(len(orders_dict[exit_side]) == 0):
+                    closest_exit_price = 0
+                else:
+                    closest_exit_price = orders_dict[exit_side][0]['price']
+                    print("Closest Exit Price: ")
+                    print(closest_exit_price)
 
                 #Loop check for secondary orderschange:
                 ticker = 0
-                timer = 20
+                timer = 60
                 while (True):
 
                     #Display Timer:
@@ -153,37 +170,55 @@ class Strategy_DCA:
                     ticker +=1
                     sleep(2)
                     
-                    if (self.check_order_change(orders_dict[entry_side], closest_entry_order) == True):
-
+                    #check for open order change
+                    if (self.check_order_change(orders_dict[entry_side], closest_entry_price) == 1):
                         print("Buy order added")
                         #create new secondary exit order after entry order is hit:
                         exit_quantity = safety_trade_amount * (1 - percent_rollover)
                         main_entry_input_quantity += (exit_quantity - safety_trade_amount)
-                        closest_exit_price = calc().calc_percent_difference('long', 'exit', closest_entry_order, profit_percent)
+                        closest_exit_price = calc().calc_percent_difference('long', 'exit', closest_entry_price, profit_percent)
                         main_pos_entry = float(self.api.get_position_entry_price())
-                        if(closest_exit_price < main_pos_entry) and (closest_exit_price > self.api.last_price()):
+                        print("new closest exit price: ")
+                        print(closest_exit_price)
+                        print("Last Price: ")
+                        print(self.api.last_price())
+                        print("Main_pos_entry: ")
+                        print(main_pos_entry)
+
+                        if(closest_exit_price > self.api.last_price()):
                             self.api.place_order(closest_exit_price, 'Limit', exit_side, exit_quantity, 0, True)
                             print("new close order created")
 
+                        #TEST PRINT
+                        print("Exit Orders:")
+                        orders_dict = self.get_orders_dict(entry_side)
+                        print(orders_dict[exit_side])
                         break
 
                     #check for close order change:
                     #TODO FIX Main position closing running this again
-                    elif (self.check_order_change(orders_dict[exit_side], closest_exit_order) == True):
+                    elif (self.check_order_change(orders_dict[exit_side], closest_exit_price) == 1):
                         self.create_trade_record(secondary_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
                         print("Position closed")
                         #create new secondary entry after exit order is hit:
                         closest_entry_price = calc().calc_percent_difference('long', 'entry', self.api.last_price(), profit_percent)
+                        print("new closest entry price: ")
+                        print(closest_entry_price)
+                        print("Last Price: ")
+                        print(self.api.last_price())
+
                         if (self.api.last_price() > closest_entry_price):
                             self.api.place_order(closest_entry_price, 'Limit', entry_side, secondary_entry_input_quantity, 0, True)
                             print("new open order created")
 
+                        #TEST PRINT
+                        print("Entry Orders")
+                        orders_dict = self.get_orders_dict(entry_side)
+                        print(orders_dict[entry_side])
                         break
                     
-                    orders_dict = self.get_orders_dict(entry_side, exit_side)
+                    orders_dict = self.get_orders_dict(entry_side)
 
-                closest_entry_price = self.api.get_entry_price(main_entry_input_quantity)
-                closest_exit_price = self.api.get_exit_price(main_entry_input_quantity)
                 self.create_trade_record(main_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
 
                 #update initial values:
@@ -191,12 +226,12 @@ class Strategy_DCA:
                 main_pos_entry = float(self.api.get_active_position_entry_price())
                 used_input_quantity = self.get_used_input_quantity(orders_dict['input_quantity'])
 
-      
 
+    #get number of open orders
     def get_current_number_open_orders(self, open_orders_list):
         return len(open_orders_list)
 
-    #Get last input quantity
+    #get last input quantity
     def get_last_input_quantity_dict(self, side, order_list):
         closest_order = self.get_closest_order_to_position(entry_side, order_list)
         last_input_quantity_kv = []
@@ -213,7 +248,7 @@ class Strategy_DCA:
         return last_input_quantity_kv
         
 
-    # get current amount of input quantity in open orders & position
+    #get current amount of input quantity in open orders & position
     def get_used_input_quantity(self, input_quantity_list):
         input_quantity = self.api.get_position_size()
 
@@ -222,53 +257,63 @@ class Strategy_DCA:
         return input_quantity
 
     #retreive orders & separate into dict
-    def get_orders_dict(self, entry_side, exit_side):
+    def get_orders_dict(self, entry_side):
         order_list = self.api.get_orders_id_and_price()
-        open_orders_list = []
-        close_orders_list = []
+        entry_orders_list = []
+        exit_orders_list = []
         input_quantity_list = []
 
         order_list_kv = {}
 
         for x in range(len(order_list)):
             if (order_list[x]['side'] == entry_side):
-                open_orders_list.append(order_list[x])
+                entry_orders_list.append(order_list[x])
                 input_quantity_list.append(order_list[x]['input_quantity'])
             else:
-                close_orders_list.append(order_list[x])
+                exit_orders_list.append(order_list[x])
 
-        order_list_kv[entry_side] = open_orders_list
-        order_list_kv[exit_side] = close_orders_list
+        if (entry_side == 'Buy'):
+            order_list_kv['Buy'] = sorted(entry_orders_list, key=lambda k: k['price'], reverse=True)
+            order_list_kv['Sell'] = sorted(exit_orders_list, key=lambda k: k['price'])
+        else:
+            order_list_kv['Sell'] = sorted(entry_orders_list, key=lambda k: k['price'])
+            order_list_kv['Buy'] = sorted(exit_orders_list, key=lambda k: k['price'], reverse=True)
+
         order_list_kv['input_quantity'] = input_quantity_list
+
         return order_list_kv
 
     #get closest order
-    def get_closest_order_to_position(self, side, order_list):
-        closest_order = 0
+    # def get_closest_order_to_position(self, side, order_list):
+    #     closest_order = 0
 
-        if (side == 'Buy'):
-            for x in range(len(order_list)):
-                price = float(order_list[x]['price'])
-                if(price > closest_order):
-                    closest_order = price
-        elif (side == 'Sell'):
-            for x in range(len(order_list)):
-                price = float(order_list[x]['price'])
-                if(price < closest_order) or (closest_order == 0):
-                    closest_order = price
-        return closest_order
+    #     if (side == 'Buy'):
+    #         for x in range(len(order_list)):
+    #             price = float(order_list[x]['price'])
+    #             if(price > closest_order):
+    #                 closest_order = price
+    #     elif (side == 'Sell'):
+    #         for x in range(len(order_list)):
+    #             price = float(order_list[x]['price'])
+    #             if(price < closest_order) or (closest_order == 0):
+    #                 closest_order = price
+    #     return closest_order
 
     #check for order changes
     def check_order_change(self, orders_list, closest_order):
-        order_change_check = True
+        order_change_check = 1
 
-        for x in range(len(orders_list)):
-            price = float(orders_list[x]['price'])
-            if (price == closest_order):
-                order_change_check = False
-                break
+        if (len(orders_list) == 0):
+            print("Orders List Empty")
+            order_change_check = 0
+        else:
+            for x in range(len(orders_list)):
+                price = float(orders_list[x]['price'])
+                if (price == closest_order):
+                    order_change_check = 0
+                    break
 
-        if (order_change_check == True):
+        if (order_change_check == 1):
             print("")
             print("ORDER CLOSED")
 
