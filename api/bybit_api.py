@@ -87,12 +87,41 @@ class Bybit_Api:
         active_orders = self.get_order()
         kv_list = []
         index = 0
-
-        for x in range(len(active_orders)):
-            order = active_orders[x]
-            index +=1
-            kv_list.append({'side': order['side'], 'price':  order['price'], 'input_quantity': order['qty'], 'order_id': order['order_id']})
+        
+        if((active_orders) == []):
+            kv_list = []
+        else:
+            for x in range(len(active_orders)):
+                order = active_orders[x]
+                index +=1
+                kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
         return kv_list    
+
+#orders:
+    def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
+
+        try:
+            if(order_type == 'Market'):
+                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
+                                            qty=input_quantity, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+            elif(order_type == "Limit"):
+                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
+                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
+                                            qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+            else:
+                print("Invalid Order")
+        except Exception as e:
+            print("an exception occured - {}".format(e))
+            return False
+        return order
+
+    def change_order_price_size(self, price, input_quantity, order_id):
+        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_qty=str(input_quantity), p_r_price=str(price)).result()
+        return order
+
+    def change_order_size(self, input_quantity, order_id):
+        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_price=str(price)).result()
 
 #position:
     def get_position_result(self):
@@ -122,29 +151,6 @@ class Bybit_Api:
     def get_position_entry_price(self):
         position_result = self.get_position_result()
         return position_result['entry_price']
-
-#orders:
-    def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
-
-        try:
-            if(order_type == 'Market'):
-                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
-                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
-                                            qty=input_quantity, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
-            elif(order_type == "Limit"):
-                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
-                order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
-            else:
-                print("Invalid Order")
-        except Exception as e:
-            print("an exception occured - {}".format(e))
-            return False
-        return order
-
-    def change_order_price(self, price, order_id):
-        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_price=str(price)).result()
-        return order
 
 #Leverage
  

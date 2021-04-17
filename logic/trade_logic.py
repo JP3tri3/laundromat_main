@@ -42,7 +42,7 @@ class Trade_Logic:
             else:
                 print("Invalid Input, try again...")
 
-    def force_limit_order(self, side):
+    def force_limit_order(self, side, input_quantity):
         flag = False
         current_price = self.api.last_price()
         price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
@@ -55,7 +55,7 @@ class Trade_Logic:
                     print("price: " + str(price))
                     current_price = self.api.last_price()
                     price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
-                    self.api.change_order_price(price, self.api.get_order_id())
+                    self.api.change_order_price_size(price, input_quantity, self.api.get_order_id())
                     print("Order Price Updated: " + str(price))
                     print("")
                 sleep(0.5)

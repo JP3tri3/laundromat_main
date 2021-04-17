@@ -25,8 +25,8 @@ class Strategy_DCA:
         self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference)
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
 
-
     #Create Trade Record
+    #TODO: Fix gain calculation
     def create_trade_record(self, input_quantity, profit_percent, entry_price, exit_price):
         global trade_record_id
 
@@ -101,6 +101,7 @@ class Strategy_DCA:
             #calculate and create open orders below Main pos:
             percent_spread = profit_percent / max_active_open_orders
             secondary_entry_input_quantity = safety_trade_amount / max_active_open_orders
+            secondary_exit_input_quantity = secondary_entry_input_quantity * (1 - percent_rollover)
             secondary_entry_price = main_pos_entry
 
             orders_dict = self.get_orders_dict(entry_side)
@@ -123,7 +124,7 @@ class Strategy_DCA:
                     order_id = orders_dict[entry_side][i]['order_id']
                     price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
                     print(str(x + 1) + ": Secondary Pos Change Order Price: " + str(price))
-                    self.api.change_order_price(price, order_id)
+                    self.api.change_order_price(price, secondary_entry_input_quantity, order_id)
                     secondary_entry_price = price
                     print("")
 
@@ -141,13 +142,14 @@ class Strategy_DCA:
                 (print(""))
 
                 orders_dict = self.get_orders_dict(entry_side)
+                main_pos_order_id = orders_dict[exit_side][0]['order_id']
 
                 #update initial values:
                 current_active_entry_orders = self.get_current_number_open_orders(orders_dict)
                 main_pos_entry = float(self.api.get_active_position_entry_price())
                 used_input_quantity = self.get_used_input_quantity(orders_dict['input_quantity'])
 
-                #pull open orders & closest open:                           
+                #pull open orders & closest open:
                 if (len(orders_dict[entry_side]) == 0):
                     closest_entry_price = 0
                 else:
@@ -166,8 +168,6 @@ class Strategy_DCA:
                 ticker = 0
                 timer = 60
                 while (True):
-                    print("In orders check loop")
-                    print("")
                     
                     #Display Timer:
                     if (ticker == timer):
@@ -177,33 +177,34 @@ class Strategy_DCA:
                     ticker +=1
                     sleep(2)
 
-
+                    #TEST PRINTS
+                    # print("# of Entrys:")
+                    # print(len(orders_dict[entry_side]))
+                    # print("# of Exits:")
+                    # print(len(orders_dict[exit_side]))
 
                     if (len(orders_dict[exit_side]) == 0):
                         if (self.tl.active_position_check() == 0):
                             print("No Valid Exit Orders")
                             break
-                    elif (len(orders_dict[entry_side]) == 0):
-                        print("No Valid Entry Orders")
-                        break
+                    # elif (len(orders_dict[entry_side]) == 0):
+                    #     print("No Valid Entry Orders")
+                    #     continue
                     else:
                     #check for open order change
                         if (self.check_order_change(orders_dict[entry_side], closest_entry_price) == 1):
                             print("Buy order added")
                             #create new secondary exit order after entry order is hit:
-                            exit_quantity = safety_trade_amount * (1 - percent_rollover)
-                            main_entry_input_quantity += (exit_quantity - safety_trade_amount)
+                            main_entry_input_quantity += (secondary_entry_input_quantity - secondary_exit_input_quantity)
+                            print("main_entry_input_quantity: ")
+                            print(main_entry_input_quantity)
+                            print('')
+
                             closest_exit_price = calc().calc_percent_difference('long', 'exit', closest_entry_price, profit_percent)
                             main_pos_entry = float(self.api.get_position_entry_price())
-                            print("new closest exit price: ")
-                            print(closest_exit_price)
-                            print("Last Price: ")
-                            print(self.api.last_price())
-                            print("Main_pos_entry: ")
-                            print(main_pos_entry)
 
                             if(closest_exit_price > self.api.last_price()):
-                                self.api.place_order(closest_exit_price, 'Limit', exit_side, exit_quantity, 0, True)
+                                self.api.place_order(closest_exit_price, 'Limit', exit_side, secondary_exit_input_quantity, 0, True)
                                 print("new close order created")
 
                             #TEST PRINT
@@ -213,7 +214,6 @@ class Strategy_DCA:
                             break
 
                         #check for close order change:
-                        #TODO FIX Main position closing running this again
                         elif (self.check_order_change(orders_dict[exit_side], closest_exit_price) == 1):
                             self.create_trade_record(secondary_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
                             print("Position closed")
@@ -228,6 +228,9 @@ class Strategy_DCA:
                                 self.api.place_order(closest_entry_price, 'Limit', entry_side, secondary_entry_input_quantity, 0, True)
                                 print("new open order created")
 
+                            #Update Main Pos exit:
+                            self.update_main_pos_exit_order(profit_percent)
+
                             #TEST PRINT
                             print("Entry Orders")
                             orders_dict = self.get_orders_dict(entry_side)
@@ -240,7 +243,13 @@ class Strategy_DCA:
                 self.create_trade_record(main_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
 
 
-
+    #update main pos exit order
+    def update_main_pos_exit_order(self, profit_percent):
+        #TODO: fix input quantity calculation
+        main_pos_entry = float(self.api.get_active_position_entry_price())
+        main_pos_quantity = self.api.get_position_size()
+        price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
+        self.api.change_order_price_size(price, main_pos_quantity, main_pos_order_id)
 
     #get number of open orders
     def get_current_number_open_orders(self, open_orders_list):
