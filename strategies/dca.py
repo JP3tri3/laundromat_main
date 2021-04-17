@@ -229,7 +229,7 @@ class Strategy_DCA:
                                 print("new open order created")
 
                             #Update Main Pos exit:
-                            self.update_main_pos_exit_order(profit_percent)
+                            self.update_main_pos_exit_order(profit_percent, main_pos_order_id)
 
                             #TEST PRINT
                             print("Entry Orders")
@@ -244,7 +244,7 @@ class Strategy_DCA:
 
 
     #update main pos exit order
-    def update_main_pos_exit_order(self, profit_percent):
+    def update_main_pos_exit_order(self, profit_percent, order_id):
         #TODO: fix input quantity calculation
         main_pos_entry = float(self.api.get_active_position_entry_price())
         main_pos_quantity = self.api.get_position_size()
