@@ -61,18 +61,32 @@ class Strategy_DCA:
         closest_exit_price = 0
 
         #Set Trade Values
-        profit_percent = 0.0025
+        profit_percent = 0.00025
         percent_rollover = 0.05
-        max_active_open_orders = 5
+        max_active_entry_orders = 5
 
         current_active_entry_orders = 0
         current_active_exit_orders = 0
         used_input_quantity = 0
         main_pos_entry = 0
 
-        # secondary_pos_entry = 0
+        #### TEST ####
+        
+        # secondary_entry_price = self.api.get_active_position_entry_price()
+        # orders_dict = self.get_orders_dict(entry_side)
+        # secondary_entry_input_quantity = int(safety_trade_amount / max_active_entry_orders)
+        # print(secondary_entry_input_quantity)
+        # print(type(secondary_entry_input_quantity))
+        # entry_price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
+        # order_id = orders_dict[entry_side][3]['order_id']
+        # self.api.change_order_price_size(entry_price, secondary_entry_input_quantity, order_id)
 
-        while(used_input_quantity <= (self.input_quantity - safety_trade_amount)):
+        # #TEST flag
+        test_flag = True
+
+        while(test_flag == True):
+            print("!! IN MAIN LOOP !!")
+        # while(used_input_quantity <= (self.input_quantity - safety_trade_amount)):
             main_entry_input_quantity = 0
             secondary_entry_input_quantity = 0
 
@@ -89,158 +103,142 @@ class Strategy_DCA:
             main_entry_input_quantity = safety_trade_amount
             self.api.place_order(self.api.last_price(), 'Market', entry_side, main_entry_input_quantity, 0, False)
             
-            main_pos_entry = float(self.api.get_active_position_entry_price())
+            main_pos_entry = round(self.api.get_active_position_entry_price(), 0)
+
+
 
             #create initial limit sell order:
-            price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
-            print("SELL PRICE: " + str(price))
-            self.api.place_order(price, 'Limit', exit_side, safety_trade_amount, 0, True)
+            main_pos_exit_price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
+            print("SELL PRICE: " + str(main_pos_exit_price))
+            self.api.place_order(main_pos_exit_price, 'Limit', exit_side, safety_trade_amount, 0, True)
             
             current_active_exit_orders += 1
 
+            orders_dict = self.get_orders_dict(entry_side)
+
+            if (orders_dict[exit_side] == []):
+                main_pos_exit_order_id = 'null'
+            else:
+                main_pos_exit_order_id = orders_dict[exit_side][0]['order_id']
+
             #calculate and create open orders below Main pos:
-            percent_spread = profit_percent / max_active_open_orders
-            secondary_entry_input_quantity = safety_trade_amount / max_active_open_orders
+            percent_spread = profit_percent / max_active_entry_orders
+            secondary_entry_input_quantity = int(safety_trade_amount / max_active_entry_orders)
             secondary_exit_input_quantity = secondary_entry_input_quantity * (1 - percent_rollover)
             secondary_entry_price = main_pos_entry
 
-            orders_dict = self.get_orders_dict(entry_side)
+            active_entry_orders = len(orders_dict[entry_side])
+            active_exit_orders = len(orders_dict[exit_side]) - 1
+            total_active_orders = active_exit_orders + active_entry_orders
+            available_entry_orders = max_active_entry_orders - total_active_orders
 
-            
-            active_open_orders = len(orders_dict[side])
-            available_orders = max_active_open_orders - active_open_orders
-            print("ACTIVE OPEN ORDERS")
-            print(active_open_orders)
-            print("AVAILABLE ORDERS")
-            print(available_orders)
+            secondary_entry_price = main_pos_entry
 
-            if (available_orders >= 0):
-                print('active open orders range: ')
-                print(range(active_open_orders))
-                print("Pre-change Orders: ")
-                print(print(orders_dict[entry_side]))
-                for x in range(active_open_orders):
-                    i = (active_open_orders - x) -1
-                    order_id = orders_dict[entry_side][i]['order_id']
-                    price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
-                    print(str(x + 1) + ": Secondary Pos Change Order Price: " + str(price))
-                    self.api.change_order_price(price, secondary_entry_input_quantity, order_id)
-                    secondary_entry_price = price
-                    print("")
-
-                for x in range(available_orders):
-                    price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
-                    print(str(x + 1) + ": Secondary Pos Price: " + str(price))
-                    self.api.place_order(price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)
-                    secondary_entry_price = price
+            #create_price_list:
+            for x in range(available_entry_orders):
+                entry_price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
+                secondary_entry_price = entry_price
+                print('')
+                print("Adding Entry Order")
+                self.api.place_order(entry_price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)
 
 
-            #Loop check for active Main position:
+            for x in range(active_entry_orders):
+                entry_price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
+                secondary_entry_price = entry_price
+                order_id = orders_dict[entry_side][x]['order_id']
+                self.api.change_order_price_size(entry_price, secondary_entry_input_quantity, order_id)
 
-            while (self.tl.active_position_check() == 1):
-                print("In active pos loop")
-                (print(""))
+            ticker = 0
+            timer = 15
 
-                orders_dict = self.get_orders_dict(entry_side)
-                main_pos_order_id = orders_dict[exit_side][0]['order_id']
+            while (self.api.get_position_size() != 0):
 
-                #update initial values:
-                current_active_entry_orders = self.get_current_number_open_orders(orders_dict)
-                main_pos_entry = float(self.api.get_active_position_entry_price())
-                used_input_quantity = self.get_used_input_quantity(orders_dict['input_quantity'])
+                #Display Timer:
+                if (ticker == timer):
+                    print("Checking for Order Change")
+                    ticker = 0
 
-                #pull open orders & closest open:
-                if (len(orders_dict[entry_side]) == 0):
-                    closest_entry_price = 0
-                else:
-                    closest_entry_price = orders_dict[entry_side][0]['price']
-                    print("Closest Entry Price: ")
-                    print(closest_entry_price)
+                ticker +=1
+                sleep(2)
+                #End Display Timer
 
-                if(len(orders_dict[exit_side]) == 0):
-                    closest_exit_price = 0
-                else:
-                    closest_exit_price = orders_dict[exit_side][0]['price']
-                    print("Closest Exit Price: ")
-                    print(closest_exit_price)
+                #init list to check against, equals maximum orders
+                init_orders_list = self.api.get_orders_id_and_price()
+                print(init_orders_list)
+                print('')
 
-                #Loop check for secondary orderschange:
-                ticker = 0
-                timer = 60
-                while (True):
+                for x in init_orders_list:
+                    print(x)
+
+                while (len(init_orders_list) == 6):
+                    print(len(init_orders_list))
                     
-                    #Display Timer:
-                    if (ticker == timer):
-                        print("Checking for Order Change")
-                        ticker = 0
+                    #create new list in loop and check for changes
+                    orders_list = self.api.get_orders_id_and_price()
+                    orders_waiting = self.get_orders_not_active(init_orders_list, orders_list)
 
-                    ticker +=1
+                    print('init_orders_list')
+                    print(init_orders_list)
+                    print('orders_list')
+                    print(orders_list)
+                    print('orders_waiting')
+                    print(orders_waiting)
                     sleep(2)
 
-                    #TEST PRINTS
-                    # print("# of Entrys:")
-                    # print(len(orders_dict[entry_side]))
-                    # print("# of Exits:")
-                    # print(len(orders_dict[exit_side]))
+                #     if (orders_waiting != []):
+                        
+                #         for x in range(len(orders_waiting)):
+                #             if orders_waiting[x]['side'] == entry_side:
+                #                 #create new exit order upon entry close
+                #                 print("creating new exit order")
+                #                 price = calc().calc_percent_difference('long', 'exit', orders_waiting[x]['price'], profit_percent)
+                #                 self.api.place_order(price, 'Limit', exit_side, secondary_exit_input_quantity, 0, False)
+                #             elif orders_waiting[x]['side'] == exit_side:
+                #                 #create new entry order upon exit close
+                #                 print('creating new entry order')
+                #                 price = calc().calc_percent_difference('long', 'entry', orders_waiting[x]['price'], profit_percent)
+                #                 self.api.place_order(price, 'Limit', entry_price, secondary_entry_input_quantity, 0, False)                                   
 
-                    if (len(orders_dict[exit_side]) == 0):
-                        if (self.tl.active_position_check() == 0):
-                            print("No Valid Exit Orders")
-                            break
-                    # elif (len(orders_dict[entry_side]) == 0):
-                    #     print("No Valid Entry Orders")
-                    #     continue
-                    else:
-                    #check for open order change
-                        if (self.check_order_change(orders_dict[entry_side], closest_entry_price) == 1):
-                            print("Buy order added")
-                            #create new secondary exit order after entry order is hit:
-                            main_entry_input_quantity += (secondary_entry_input_quantity - secondary_exit_input_quantity)
-                            print("main_entry_input_quantity: ")
-                            print(main_entry_input_quantity)
-                            print('')
+                #         self.update_main_pos_exit_order(profit_percent, main_pos_exit_order_id)
 
-                            closest_exit_price = calc().calc_percent_difference('long', 'exit', closest_entry_price, profit_percent)
-                            main_pos_entry = float(self.api.get_position_entry_price())
+                #         init_orders_list = []
 
-                            if(closest_exit_price > self.api.last_price()):
-                                self.api.place_order(closest_exit_price, 'Limit', exit_side, secondary_exit_input_quantity, 0, True)
-                                print("new close order created")
 
-                            #TEST PRINT
-                            print("Exit Orders:")
-                            orders_dict = self.get_orders_dict(entry_side)
-                            print(orders_dict[exit_side])
-                            break
 
-                        #check for close order change:
-                        elif (self.check_order_change(orders_dict[exit_side], closest_exit_price) == 1):
-                            self.create_trade_record(secondary_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
-                            print("Position closed")
-                            #create new secondary entry after exit order is hit:
-                            closest_entry_price = calc().calc_percent_difference('long', 'entry', self.api.last_price(), profit_percent)
-                            print("new closest entry price: ")
-                            print(closest_entry_price)
-                            print("Last Price: ")
-                            print(self.api.last_price())
 
-                            if (self.api.last_price() > closest_entry_price):
-                                self.api.place_order(closest_entry_price, 'Limit', entry_side, secondary_entry_input_quantity, 0, True)
-                                print("new open order created")
 
-                            #Update Main Pos exit:
-                            self.update_main_pos_exit_order(profit_percent, main_pos_order_id)
+            # self.create_trade_record(main_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
 
-                            #TEST PRINT
-                            print("Entry Orders")
-                            orders_dict = self.get_orders_dict(entry_side)
-                            print(orders_dict[entry_side])
-                            break
 
-                        orders_dict = self.get_orders_dict(entry_side)
                     
+    def get_orders_not_active(self, init_orders_list, active_orders_list):
+        lst = init_orders_list
 
-                self.create_trade_record(main_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
+        for index in active_orders_list:
+            order_id = index['order_id']
+            for id in lst:
+                if id['order_id'] == order_id:
+                    lst.remove(id)
+                    break
+        return lst
+
+    # def get_orders_diff(self):
+    #     return (list(list(set(price_list)-set(active_orders_list)) + list(set(active_orders_list)-set(price_list))))
+
+
+    #create price list for orders
+    def create_order_price_list(self, initial_price, num_of_orders, profit_percent):
+        lst = []
+        index = 0
+        entry_price = initial_price
+
+        lst.append(round(initial_price, 0))
+
+        for x in range(num_of_orders):
+            entry_price = calc().calc_percent_difference('long', 'entry', entry_price, profit_percent)
+            lst.append(round(entry_price, 0))
+        return lst
 
 
     #update main pos exit order
@@ -249,7 +247,7 @@ class Strategy_DCA:
         main_pos_entry = float(self.api.get_active_position_entry_price())
         main_pos_quantity = self.api.get_position_size()
         price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
-        self.api.change_order_price_size(price, main_pos_quantity, main_pos_order_id)
+        self.api.change_order_price_size(price, main_pos_quantity, order_id)
 
     #get number of open orders
     def get_current_number_open_orders(self, open_orders_list):
@@ -286,24 +284,35 @@ class Strategy_DCA:
         entry_orders_list = []
         exit_orders_list = []
         input_quantity_list = []
+        entry_prices = []
+        exit_prices = []
 
         order_list_kv = {}
 
         for x in range(len(order_list)):
+
             if (order_list[x]['side'] == entry_side):
                 entry_orders_list.append(order_list[x])
                 input_quantity_list.append(order_list[x]['input_quantity'])
+                entry_prices.append(order_list[x]['price'])
             else:
                 exit_orders_list.append(order_list[x])
+                exit_prices.append(order_list[x]['price'])
 
         if (entry_side == 'Buy'):
             order_list_kv['Buy'] = sorted(entry_orders_list, key=lambda k: k['price'], reverse=True)
             order_list_kv['Sell'] = sorted(exit_orders_list, key=lambda k: k['price'])
+            order_list_kv['entry_prices'] = sorted(entry_prices, reverse=True)
+            order_list_kv['exit_prices'] = sorted(exit_prices)
         else:
             order_list_kv['Sell'] = sorted(entry_orders_list, key=lambda k: k['price'])
             order_list_kv['Buy'] = sorted(exit_orders_list, key=lambda k: k['price'], reverse=True)
+            order_list_kv['entry_prices'] = sorted(entry_prices)
+            order_list_kv['exit_prices'] = sorted(exit_prices, reverse=True)
 
         order_list_kv['input_quantity'] = input_quantity_list
+        
+        
 
         return order_list_kv
 

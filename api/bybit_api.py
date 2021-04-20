@@ -1,6 +1,7 @@
 import sys
 sys.path.append("..")
 import bybit
+from time import time, sleep
 
 class Bybit_Api:
 
@@ -87,15 +88,36 @@ class Bybit_Api:
         active_orders = self.get_order()
         kv_list = []
         index = 0
-        
-        if((active_orders) == []):
-            kv_list = []
-        else:
-            for x in range(len(active_orders)):
-                order = active_orders[x]
-                index +=1
-                kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
-        return kv_list    
+
+        try:
+            if(active_orders == []) or (active_orders == None):
+                kv_list = []
+            else:
+                for x in range(len(active_orders)):
+                    order = active_orders[x]
+                    index +=1
+                    kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
+            return kv_list    
+        except Exception as e:
+            print("an exception occured - {}".format(e))
+
+    # def get_orders_price_list(self, side):
+    #     active_orders = self.get_order()
+    #     lst = []
+    #     index = 0
+
+    #     try:
+    #         if(active_orders == []) or (active_orders == None):
+    #             kv_list = []
+    #         else:
+    #             for x in range(len(active_orders)):
+    #                 order = active_orders[x]
+    #                 if (order['side'] == side):
+    #                     index +=1
+    #                     lst.append(float(order['price']))
+    #         return lst  
+    #     except Exception as e:
+    #         print("an exception occured - {}".format(e))       
 
 #orders:
     def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
@@ -117,11 +139,14 @@ class Bybit_Api:
         return order
 
     def change_order_price_size(self, price, input_quantity, order_id):
-        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_qty=str(input_quantity), p_r_price=str(price)).result()
+        input_quantity = int(input_quantity)
+        try:
+            print(f"changing order {order_id} - {price} {input_quantity}")
+            order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_qty=str(input_quantity), p_r_price=str(price)).result()
+        except Exception as e:
+            print("an exception occured - {}".format(e))
+            return False
         return order
-
-    def change_order_size(self, input_quantity, order_id):
-        order = self.client.Order.Order_replace(symbol=self.symbol_pair, order_id=order_id, p_r_price=str(price)).result()
 
 #position:
     def get_position_result(self):
@@ -146,11 +171,11 @@ class Bybit_Api:
 
     def get_active_position_entry_price(self):
         position_result = self.get_position_result()
-        return float(position_result['entry_price'])
-
-    def get_position_entry_price(self):
-        position_result = self.get_position_result()
-        return position_result['entry_price']
+        entry_price = position_result['entry_price']
+        if (entry_price == None):
+            return 0
+        else:
+            return float(entry_price)
 
 #Leverage
  
