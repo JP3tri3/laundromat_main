@@ -130,7 +130,7 @@ class Bybit_Api:
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, price=str(price), time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:
