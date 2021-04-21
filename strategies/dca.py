@@ -11,11 +11,11 @@ from time import time, sleep
 
 class Strategy_DCA:
 
-    def __init__(self, api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference):
+    def __init__(self, api_key, api_secret, trade_id, strat_id, symbol, symbol_pair, key_input, input_quantity, leverage, limit_price_difference, max_active_positions):
         self.trade_id = trade_id
         self.strat_id = strat_id
         self.input_quantity = input_quantity
-        self.max_number_of_trades = 20
+        self.max_active_positions = max_active_positions
         self.leverage = leverage
         self.key_input = key_input
         self.trade_record_id = 0
@@ -52,19 +52,21 @@ class Strategy_DCA:
         else:
             exit_side = 'Buy'
 
-
-        available_trades = self.max_number_of_trades
-        available_input_quantity = self.input_quantity
-        safety_trade_amount = available_input_quantity / available_trades
-
-        closest_entry_price = 0
-        closest_exit_price = 0
-
         #Set Trade Values
-        profit_percent = 0.00025
-        percent_rollover = 0.05
-        max_active_entry_orders = 5
+        set_profit_percent = 0.0025
+        percent_rollover = 0.0
+        max_active_positions = self.max_active_positions
+        active_secondary_orders = 5
 
+        available_positions = max_active_positions
+        available_input_quantity = self.input_quantity
+        position_trade_quantity = self.input_quantity / max_active_positions
+
+        main_pos_percenty_of_total_quantity = 0.5
+        main_pos_input_quantity = position_trade_quantity * main_pos_percenty_of_total_quantity
+        secondary_pos_input_quantity = position_trade_quantity - main_pos_input_quantity
+
+        profit_percent = set_profit_percent / self.leverage
         current_active_entry_orders = 0
         current_active_exit_orders = 0
         used_input_quantity = 0
@@ -78,31 +80,29 @@ class Strategy_DCA:
 
         while(test_flag == True):
             print("!! IN MAIN LOOP !!")
-        # while(used_input_quantity <= (self.input_quantity - safety_trade_amount)):
-            main_entry_input_quantity = 0
-            secondary_entry_input_quantity = 0
+        # while(used_input_quantity <= (self.input_quantity - position_trade_quantity)):
 
-            print("Used Input Quantity: ")
-            print(used_input_quantity)
-            print("Available Input Quantity: ")
-            print(self.input_quantity - safety_trade_amount)
             #create initial Main Pos limit order w/ Force Limit:
             # self.tl.create_limit_order(self.api.last_price() - self.limit_price_difference, entry_side, active_trade_amount, 0, False)
             # print("Forcing Main Pos Limit Order")
             # self.tl.force_limit_order(side)
             #TEST W/ MARKET:
 
-            main_entry_input_quantity = safety_trade_amount
-            self.api.place_order(self.api.last_price(), 'Market', entry_side, main_entry_input_quantity, 0, False)
+            print('')
+            print('creating main_pos entry: ')
+            main_entry_input_quantity = position_trade_quantity
+            self.api.place_order(self.api.last_price(), 'Market', entry_side, main_pos_input_quantity, 0, False)
             
             main_pos_entry = round(self.api.get_active_position_entry_price(), 0)
 
 
 
             #create initial limit sell order:
+            print('')
+            print('creating main_pos exit: ')
             main_pos_exit_price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
             print("SELL PRICE: " + str(main_pos_exit_price))
-            self.api.place_order(main_pos_exit_price, 'Limit', exit_side, safety_trade_amount, 0, True)
+            self.api.place_order(main_pos_exit_price, 'Limit', exit_side, main_pos_input_quantity, 0, True)
             
             current_active_exit_orders += 1
 
@@ -114,19 +114,22 @@ class Strategy_DCA:
                 main_pos_exit_order_id = orders_dict[exit_side][0]['order_id']
 
             #calculate and create open orders below Main pos:
-            percent_spread = profit_percent / max_active_entry_orders
-            secondary_entry_input_quantity = int(safety_trade_amount / max_active_entry_orders)
+            # percent_spread = profit_percent / active_secondary_orders
+            secondary_entry_input_quantity = int(secondary_pos_input_quantity / active_secondary_orders)
             secondary_exit_input_quantity = secondary_entry_input_quantity * (1 - percent_rollover)
             secondary_entry_price = main_pos_entry
 
+            #determine active & available orders
             active_entry_orders = len(orders_dict[entry_side])
             active_exit_orders = len(orders_dict[exit_side]) - 1
             total_active_orders = active_exit_orders + active_entry_orders
-            available_entry_orders = max_active_entry_orders - total_active_orders
+            available_entry_orders = active_secondary_orders - total_active_orders
 
             secondary_entry_price = main_pos_entry
 
             #create_price_list:
+            print('')
+            print('checking for available entries: ')
             for x in range(available_entry_orders):
                 entry_price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
                 secondary_entry_price = entry_price
@@ -134,7 +137,8 @@ class Strategy_DCA:
                 print("Adding Entry Order")
                 self.api.place_order(entry_price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)
 
-
+            print('')
+            print('checking for active entries: ')
             for x in range(active_entry_orders):
                 entry_price = calc().calc_percent_difference('long', 'entry', secondary_entry_price, profit_percent)
                 secondary_entry_price = entry_price
@@ -144,16 +148,17 @@ class Strategy_DCA:
             init_orders_list = self.api.get_orders_id_and_price()
 
             ticker = 0
-            timer = 15
+            timer = 30
             while (self.api.get_position_size() != 0):
-
+                main_entry_input_quantity = self.api.get_position_size()
                 #Display Timer:
                 if (ticker == timer):
+                    print('')
                     print("Checking for Order Change")
                     ticker = 0
 
                 ticker +=1
-                sleep(2)
+                sleep(1)
                 #End Display Timer
 
                 #init list to check against, equals maximum orders
@@ -161,21 +166,26 @@ class Strategy_DCA:
                 if (init_orders_list == []):
                     init_orders_list = self.api.get_orders_id_and_price()
 
-
                 #create new list in loop and check for changes
                 orders_list = self.api.get_orders_id_and_price()
                 orders_waiting = self.get_orders_not_active(init_orders_list, orders_list)
 
-                print('orders_waiting')
-                print(orders_waiting)
-                sleep(2)
-
                 if (orders_waiting != []):
+                    print('')
                     print('orders_waiting')
                     print(orders_waiting)
 
                     for x in range(len(orders_waiting)):
-                        if orders_waiting[x]['side'] == entry_side:
+                        print('')
+                        print('processing waiting available order: ')
+                        if orders_waiting[x]['order_id'] == main_pos_exit_order_id:
+                            #check for closed exit order
+                            print("Main Pos Closed")
+                            print("Breaking")
+                            print('')
+                            break
+
+                        elif orders_waiting[x]['side'] == entry_side:
                             #create new exit order upon entry close
                             print("creating new exit order")
                             price = str(calc().calc_percent_difference('long', 'exit', orders_waiting[x]['price'], profit_percent))
@@ -188,20 +198,16 @@ class Strategy_DCA:
                             #create new entry order upon exit close
                             print('creating new entry order')
                             price = calc().calc_percent_difference('long', 'entry', orders_waiting[x]['price'], profit_percent)
-                            self.api.place_order(price, 'Limit', entry_price, secondary_entry_input_quantity, 0, False)                                   
+                            self.api.place_order(price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)                                   
 
                     self.update_main_pos_exit_order(profit_percent, main_pos_exit_order_id)
 
                     init_orders_list = []
 
+            self.create_trade_record(main_entry_input_quantity, profit_percent, 0, 0)
 
 
-
-
-            # self.create_trade_record(main_entry_input_quantity, profit_percent, closest_entry_price, closest_exit_price)
-
-
-                    
+    # compare lists and return difference comparing order_id
     def get_orders_not_active(self, init_orders_list, active_orders_list):
         lst = init_orders_list.copy()
 
@@ -233,7 +239,7 @@ class Strategy_DCA:
 
     #update main pos exit order
     def update_main_pos_exit_order(self, profit_percent, order_id):
-        #TODO: fix input quantity calculation
+        print('update_main_pos_exit_order')
         main_pos_entry = float(self.api.get_active_position_entry_price())
         main_pos_quantity = self.api.get_position_size()
         price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
