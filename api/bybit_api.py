@@ -54,14 +54,14 @@ class Bybit_Api:
 
 #order:
 
-    def get_order(self):
+    def get_orders(self):
         active_order = self.client.Order.Order_query(symbol=self.symbol_pair).result()
         order = active_order[0]['result']
         return(order)
 
     def get_order_id(self):
         try:
-            order = self.get_order()
+            order = self.get_orders()
             if (order == []):
                 return "Waiting on Order ID"
             else:
@@ -79,31 +79,14 @@ class Bybit_Api:
         # Cancel all API call: doesn't seem to be working / double check the following:
         # self.client.Order.Order_cancelAll(symbol=self.symbol).result()
         print("Cancelling All Orders...")
-        orders_list = self.get_orders_id_and_price()
+        orders_list = self.get_orders()
         for x in range(len(orders_list)):
             order_id = orders_list[x]['order_id']
             self.cancel_order(order_id)
 
-    def get_orders_id_and_price(self):
-        active_orders = self.get_order()
-        kv_list = []
-        index = 0
-
-        try:
-            if(active_orders == []) or (active_orders == None):
-                kv_list = []
-            else:
-                for x in range(len(active_orders)):
-                    order = active_orders[x]
-                    index +=1
-                    kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
-            return kv_list    
-        except Exception as e:
-            print("an exception occured - {}".format(e))
-
-    # def get_orders_price_list(self, side):
-    #     active_orders = self.get_order()
-    #     lst = []
+    # def get_orders_id_and_price(self):
+    #     active_orders = self.get_orders()
+    #     kv_list = []
     #     index = 0
 
     #     try:
@@ -112,12 +95,11 @@ class Bybit_Api:
     #         else:
     #             for x in range(len(active_orders)):
     #                 order = active_orders[x]
-    #                 if (order['side'] == side):
-    #                     index +=1
-    #                     lst.append(float(order['price']))
-    #         return lst  
+    #                 index +=1
+    #                 kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
+    #         return kv_list    
     #     except Exception as e:
-    #         print("an exception occured - {}".format(e))       
+    #         print("an exception occured - {}".format(e))
 
 #orders:
     def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
@@ -130,7 +112,7 @@ class Bybit_Api:
             elif(order_type == "Limit"):
                 print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
-                                            qty=input_quantity, price=str(price), time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
+                                            qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
                 print("Invalid Order")
         except Exception as e:
