@@ -17,7 +17,7 @@ class Trade_Logic:
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
 
     def active_order_check(self):
-        order = self.api.get_order()
+        order = self.api.get_orders()
         return 0 if (order == []) else 1
 
     def active_position_check(self):
@@ -42,31 +42,10 @@ class Trade_Logic:
             else:
                 print("Invalid Input, try again...")
 
-    def force_limit_order(self, side, input_quantity):
-        flag = False
-        current_price = self.api.last_price()
-        price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
 
-        while(flag == False):
-            if (self.active_order_check() == 1):
-                if (self.api.last_price() != current_price) and (self.api.last_price() != price):
-                    print("last_price: " + str(self.api.last_price()))
-                    print("current_price: " + str(current_price))
-                    print("price: " + str(price))
-                    current_price = self.api.last_price()
-                    price = calc().calc_limit_price_difference(side, self.api.last_price(), self.limit_price_difference)
-                    self.api.change_order_price_size(price, input_quantity, self.api.get_order_id())
-                    print("Order Price Updated: " + str(price))
-                    print("")
-                sleep(0.5)
-
-            else:
-                flag = True
-                return 1
-
-    def create_limit_order(self, price, side, input_quantity, stop_loss, reduce_only):
-        self.api.place_order(price, 'Limit', side, input_quantity, stop_loss, reduce_only)
-        return self.api.get_order_id()
+        print('exit force limit order loop')
+        print('pos_size: ' + str(pos_size))
+        print('get_position size: ' + str(self.api.get_position_size()))
 
 
     def create_order(self, side_input, order_type, input_quantity):

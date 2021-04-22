@@ -1,6 +1,7 @@
 import sys
 sys.path.append("..")
 import bybit
+from logic.calc import Calc as calc
 from time import time, sleep
 
 class Bybit_Api:
@@ -17,8 +18,16 @@ class Bybit_Api:
     def my_wallet(self):
         my_wallet = self.client.Wallet.Wallet_getBalance(
             coin=self.symbol).result()
-        my_balance = my_wallet[0]['result'][self.symbol]['available_balance']
-        print(my_balance)
+        wallet_info = my_wallet[0]['result'][self.symbol]
+        my_balance = wallet_info['available_balance']
+        return(my_balance)
+
+    def my_wallet_realized_p_l(self):
+        my_wallet = self.client.Wallet.Wallet_getBalance(
+            coin=self.symbol).result()
+        wallet_info = my_wallet[0]['result'][self.symbol]
+        my_balance_p_l = wallet_info['realised_pnl']
+        return(my_balance_p_l)
 
 #symbol:
 
@@ -63,7 +72,7 @@ class Bybit_Api:
         try:
             order = self.get_orders()
             if (order == []):
-                return "Waiting on Order ID"
+                return "no order ids available"
             else:
                 order_id = order[0]['order_id']
                 return order_id
@@ -84,22 +93,22 @@ class Bybit_Api:
             order_id = orders_list[x]['order_id']
             self.cancel_order(order_id)
 
-    # def get_orders_id_and_price(self):
-    #     active_orders = self.get_orders()
-    #     kv_list = []
-    #     index = 0
+    def get_orders_info(self):
+        active_orders = self.get_orders()
+        kv_list = []
+        index = 0
 
-    #     try:
-    #         if(active_orders == []) or (active_orders == None):
-    #             kv_list = []
-    #         else:
-    #             for x in range(len(active_orders)):
-    #                 order = active_orders[x]
-    #                 index +=1
-    #                 kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
-    #         return kv_list    
-    #     except Exception as e:
-    #         print("an exception occured - {}".format(e))
+        try:
+            if(active_orders == []) or (active_orders == None):
+                kv_list = []
+            else:
+                for x in range(len(active_orders)):
+                    order = active_orders[x]
+                    index +=1
+                    kv_list.append({'side': order['side'], 'price':  float(order['price']), 'input_quantity': order['qty'], 'order_id': order['order_id']})
+            return kv_list    
+        except Exception as e:
+            print("an exception occured - {}".format(e))
 
 #orders:
     def place_order(self, price, order_type, side, input_quantity, stop_loss, reduce_only):
@@ -119,6 +128,67 @@ class Bybit_Api:
             print("an exception occured - {}".format(e))
             return False
         return order
+
+    def create_limit_order(self, price, side, input_quantity, limit_price_difference, stop_loss, reduce_only):
+        order_id_check = self.get_order_id()
+        order_id = order_id_check
+        print('create_limit_order price: ' + str(price))
+
+        while(order_id == order_id_check):
+            print('')
+            print('creating limit order: ')
+            last_price = self.last_price()
+
+            if (side == 'Buy') and (last_price > price):
+                    print('changing create_limit_order price: ')
+                    price = last_price - limit_price_difference
+                    print('create_limit_order price: ' + str(price))
+
+            elif (side == 'Sell') and (last_price < price):
+                    print('changing create_limit_order price: ')
+                    price = last_price + limit_price_difference
+                    print('create_limit_order price: ' + str(price))
+
+            self.place_order(price, 'Limit', side, input_quantity, stop_loss, reduce_only)
+            order_id = self.get_order_id()
+            print('order_id: ' + str(order_id))
+            print('order_id_check: ' + str(order_id_check))
+
+            return (order_id)
+
+    # force limit with create limit order
+    def force_limit_order(self, side, input_quantity, limit_price_difference, stop_loss, reduce_only):
+        print('')
+        print('creating_limit_order in force: ')
+        order_id = None
+        pos_size = input_quantity
+        pos_size += self.get_position_size()
+
+        while(pos_size != self.get_position_size()):
+            current_price = self.last_price()
+            price = calc().calc_limit_price_difference(side, current_price, limit_price_difference)
+            print('')
+            if (order_id == self.get_order_id()):
+                last_price = self.last_price()
+                if (last_price != current_price) and (last_price != price):
+                    print("last_price: " + str(last_price))
+                    print("current_price: " + str(current_price))
+                    print("price: " + str(price))
+                    current_price = last_price
+                    price = calc().calc_limit_price_difference(side, last_price, limit_price_difference)
+                    self.change_order_price_size(price, input_quantity, order_id)
+                    print("Order Price Updated: " + str(price))
+                    print("")
+                else:
+                    sleep(0.5)
+            else:
+                print('force limit order id not available')
+                order_id = self.create_limit_order(price, side, input_quantity, limit_price_difference, stop_loss, reduce_only)
+                print('force_limit_order_id: ' + str(order_id))
+
+        print('Force Limit Order Successful')
+
+
 
     def change_order_price_size(self, price, input_quantity, order_id):
         input_quantity = int(input_quantity)
@@ -158,6 +228,15 @@ class Bybit_Api:
             return 0
         else:
             return float(entry_price)
+
+    def update_main_pos_exit_order(self, profit_percent, order_id, long_short, entry_exit):
+        print('')
+        print('update_main_pos_exit_order')
+        main_pos_entry = float(self.get_active_position_entry_price())
+        main_pos_quantity = self.get_position_size()
+        price = calc().calc_percent_difference(long_short, entry_exit, main_pos_entry, profit_percent)
+        self.change_order_price_size(price, main_pos_quantity, order_id)
+
 
 #Leverage
  
