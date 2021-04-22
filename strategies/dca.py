@@ -26,11 +26,15 @@ class Strategy_DCA:
         self.tl = Trade_Logic(api_key, api_secret, symbol, symbol_pair, key_input, leverage, limit_price_difference)
         self.api = Bybit_Api(api_key, api_secret, symbol, symbol_pair, self.key_input)
 
-        self.open_p_l = self.api.my_wallet_realized_p_l()
-    
+        #TEMP: 
+        self.open_equity = self.api.wallet_equity()
+
+
     #Create Trade Record
     def create_trade_record(self, profit_percent, closed_trade, index):
         global trade_record_id
+        global open_equity
+
         self.trade_record_id = self.trade_record_id + 1
         print('trade_record_id: ' + str(self.trade_record_id))
 
@@ -45,9 +49,10 @@ class Strategy_DCA:
         input_quantity = closed_trade['input_quantity']
         if index == 0:
             current_last_price = self.api.last_price()
-            close_p_l = self.api.my_wallet_realized_p_l() 
-            coin_gain = close_p_l - self.open_p_l
+            current_equity = self.api.wallet_equity()
+            coin_gain = current_equity - self.open_equity
             dollar_gain = coin_gain * current_last_price
+            self.open_equity = current_equity
         else:
             coin_gain = 0
             dollar_gain = 0
@@ -63,18 +68,19 @@ class Strategy_DCA:
             exit_side = 'Buy'
 
         #Set Trade Values
-        set_profit_percent = 0.0025
+        set_profit_percent = 0.01
         percent_rollover = 0.0
         max_active_positions = self.max_active_positions
-        active_secondary_orders = 10
+        active_secondary_orders = 15 - 1
 
         available_positions = max_active_positions
         available_input_quantity = self.input_quantity
         position_trade_quantity = self.input_quantity / max_active_positions
 
-        main_pos_percenty_of_total_quantity = 0.5
-        main_pos_input_quantity = position_trade_quantity * main_pos_percenty_of_total_quantity
-        secondary_pos_input_quantity = position_trade_quantity - main_pos_input_quantity
+        #TODO: add percent calculation: 
+        main_pos_percent_of_total_quantity = 1 / (active_secondary_orders + 1)
+        main_pos_input_quantity = round(position_trade_quantity * main_pos_percent_of_total_quantity, 0)
+        secondary_pos_input_quantity = round(position_trade_quantity - main_pos_input_quantity, 0)
 
         profit_percent = set_profit_percent / self.leverage
         current_active_entry_orders = 0
@@ -83,6 +89,7 @@ class Strategy_DCA:
         main_pos_entry = 0
 
         #### TEST ####
+        # print(self.api.my_wallet_ttl_equity())
 
         # TEST flag
         test_flag = True
@@ -92,8 +99,7 @@ class Strategy_DCA:
             # while(used_input_quantity <= (self.input_quantity - position_trade_quantity)):
 
             # TEST BALANCE at Start:
-            open_balance = self.api.my_wallet()
-            open_p_l = self.api.my_wallet_realized_p_l()
+            open_p_l = self.api.wallet_realized_p_l()
 
             # force initial Main Pos limit close order
             print('')
@@ -114,7 +120,7 @@ class Strategy_DCA:
             main_pos_exit_price = calc().calc_percent_difference('long', 'exit', main_pos_entry, profit_percent)
             print("SELL PRICE: " + str(main_pos_exit_price))
             # self.api.place_order(main_pos_exit_price, 'Limit', exit_side, main_pos_input_quantity, 0, True)
-            main_pos_exit_order_id = self.api.create_limit_order(main_pos_exit_price, exit_side, main_pos_input_quantity, self.limit_price_difference, 0, True)
+            main_pos_exit_order_id = self.api.create_limit_order(main_pos_exit_price, exit_side, main_pos_input_quantity, 0, True)
             print('main_pos_exit_order_id: ' + str(main_pos_exit_order_id))
 
             current_active_exit_orders += 1
@@ -162,7 +168,7 @@ class Strategy_DCA:
 
             ticker = 0
             timer = 30
-            while (self.api.get_position_size() != 0):
+            while (self.tl.active_position_check() != 0):
 
                 #Display Timer:
                 if (ticker == timer):
@@ -200,6 +206,7 @@ class Strategy_DCA:
                             while (x < num_orders_waiting):
                                 print('in main_pos exit loop: ')
                                 print('x: ' + str(x))
+                                print('num_orders_waiting: ' + str(num_orders_waiting))
                                 if (orders_waiting[x]['side'] == exit_side):
                                     self.create_trade_record(profit_percent, orders_waiting[x], p_l_index)
                                 x += 1
@@ -215,7 +222,13 @@ class Strategy_DCA:
                             print("creating new exit order")
                             exit_price = float(orders_waiting[x]['price'])
                             price = str(calc().calc_percent_difference('long', 'exit', exit_price, profit_percent))
-                            self.api.place_order(price, 'Limit', exit_side, secondary_exit_input_quantity, 0, False)
+                            # self.api.place_order(price, 'Limit', exit_side, secondary_exit_input_quantity, 0, False)
+                            order = self.api.create_limit_order(price, exit_side, secondary_exit_input_quantity, 0, True)
+                            if (order == 0):
+                                print('create new exit order failed')
+                                print('attempted price: ' + str(price))
+                                print('last_price: ' + str(self.api.last_price()))
+                                
 
                         elif order_waiting['side'] == exit_side:
                             self.create_trade_record(profit_percent, orders_waiting[x], p_l_index)
@@ -224,19 +237,28 @@ class Strategy_DCA:
                             entry_price = float(orders_waiting[x]['price'])
                             print('creating new entry order')
                             price = calc().calc_percent_difference('long', 'entry', entry_price, profit_percent)
-                            self.api.place_order(price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)                                   
+                            # self.api.place_order(price, 'Limit', entry_side, secondary_entry_input_quantity, 0, False)                                   
+                            order = self.api.create_limit_order(price, entry_side, secondary_entry_input_quantity, 0, False)
                             p_l_index += 1
+                            if (order == 0):
+                                print('create new entry order failed')
+                                print('attempted price: ' + str(price))
+                                print('last_price: ' + str(self.api.last_price()))
 
-
+                    ## TEST ##
+                    if main_pos_exit_order_id == 'null':
+                        print('main_pos_exit_order_id null test succesful')
+                        test_flag = False
+                    
                     self.api.update_main_pos_exit_order(profit_percent, main_pos_exit_order_id, 'long', 'exit')
                     init_orders_list = []
 
             # TEST Close
-            print('cancel_all_orders: ')
-            self.api.cancel_all_orders()
-            dca_logic.print_closed_balance_details(self.api.last_price(), open_balance, open_p_l, self.api.my_wallet(), self.api.my_wallet_realized_p_l())
+            # print('cancel_all_orders: ')
+            # self.api.cancel_all_orders()
+            # dca_logic.print_closed_balance_details(self.api.last_price(), open_balance, open_p_l, self.api.my_wallet(), self.api.my_wallet_realized_p_l())
             
-            test_flag = False
+            # test_flag = False
 
 
 

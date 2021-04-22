@@ -15,19 +15,26 @@ class Bybit_Api:
     def get_key_input(self):
         return self.key_input
 
-    def my_wallet(self):
+    def wallet_result(self):
         my_wallet = self.client.Wallet.Wallet_getBalance(
             coin=self.symbol).result()
         wallet_info = my_wallet[0]['result'][self.symbol]
-        my_balance = wallet_info['available_balance']
-        return(my_balance)
+        return wallet_info
 
-    def my_wallet_realized_p_l(self):
-        my_wallet = self.client.Wallet.Wallet_getBalance(
-            coin=self.symbol).result()
-        wallet_info = my_wallet[0]['result'][self.symbol]
-        my_balance_p_l = wallet_info['realised_pnl']
-        return(my_balance_p_l)
+    def wallet_balance(self):
+        wallet_result = self.wallet_result()
+        balance = wallet_result['available_balance']
+        return(balance)
+
+    def wallet_realized_p_l(self):
+        wallet_result = self.wallet_result()
+        balance_p_l = wallet_result['realised_pnl']
+        return(balance_p_l)
+
+    def wallet_equity(self):
+        wallet_result = self.wallet_result()
+        equity = wallet_result['equity']
+        return(equity)
 
 #symbol:
 
@@ -72,7 +79,8 @@ class Bybit_Api:
         try:
             order = self.get_orders()
             if (order == []):
-                return "no order ids available"
+                print('no order ids available')
+                return []
             else:
                 order_id = order[0]['order_id']
                 return order_id
@@ -115,11 +123,11 @@ class Bybit_Api:
 
         try:
             if(order_type == 'Market'):
-                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
+                print(f"sending order {price} - {side} {input_quantity} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Market",
                                             qty=input_quantity, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             elif(order_type == "Limit"):
-                print(f"sending order {price} - {side} {self.symbol_pair} {order_type} {stop_loss}")
+                print(f"sending order {price} - {side} {input_quantity} {self.symbol_pair} {order_type} {stop_loss}")
                 order = self.client.Order.Order_new(side=side, symbol=self.symbol_pair, order_type="Limit",
                                             qty=input_quantity, price=price, time_in_force='PostOnly', stop_loss=str(stop_loss), reduce_only=reduce_only).result()
             else:
@@ -129,46 +137,35 @@ class Bybit_Api:
             return False
         return order
 
-    def create_limit_order(self, price, side, input_quantity, limit_price_difference, stop_loss, reduce_only):
-        order_id_check = self.get_order_id()
-        order_id = order_id_check
+    def create_limit_order(self, price, side, input_quantity, stop_loss, reduce_only):
         print('create_limit_order price: ' + str(price))
+        new_num_orders = len(self.get_orders()) + 1
+        print('')
+        print('creating limit order: ')
+        self.place_order(price, 'Limit', side, input_quantity, stop_loss, reduce_only)
+        num_orders = len(self.get_orders())
+        if (num_orders == new_num_orders):
+            print('limit order created successfully: ')
+            return self.get_order_id()
+        else:
+            print('limit order not successful')
+            return 0 
 
-        while(order_id == order_id_check):
-            print('')
-            print('creating limit order: ')
-            last_price = self.last_price()
 
-            if (side == 'Buy') and (last_price > price):
-                    print('changing create_limit_order price: ')
-                    price = last_price - limit_price_difference
-                    print('create_limit_order price: ' + str(price))
-
-            elif (side == 'Sell') and (last_price < price):
-                    print('changing create_limit_order price: ')
-                    price = last_price + limit_price_difference
-                    print('create_limit_order price: ' + str(price))
-
-            self.place_order(price, 'Limit', side, input_quantity, stop_loss, reduce_only)
-            order_id = self.get_order_id()
-            print('order_id: ' + str(order_id))
-            print('order_id_check: ' + str(order_id_check))
-
-            return (order_id)
 
     # force limit with create limit order
     def force_limit_order(self, side, input_quantity, limit_price_difference, stop_loss, reduce_only):
         print('')
         print('creating_limit_order in force: ')
         order_id = None
-        pos_size = input_quantity
-        pos_size += self.get_position_size()
+        pos_size = self.get_position_size()
+        total_pos_size = (input_quantity + pos_size)
+        num_orders = len(self.get_orders()) + 1
+        current_price = self.last_price()
 
-        while(pos_size != self.get_position_size()):
-            current_price = self.last_price()
-            price = calc().calc_limit_price_difference(side, current_price, limit_price_difference)
-            print('')
-            if (order_id == self.get_order_id()):
+        while(total_pos_size != pos_size):
+            new_num_orders = len(self.get_orders())
+            if (new_num_orders == num_orders):
                 last_price = self.last_price()
                 if (last_price != current_price) and (last_price != price):
                     print("last_price: " + str(last_price))
@@ -182,8 +179,15 @@ class Bybit_Api:
                 else:
                     sleep(0.5)
             else:
+                current_price = self.last_price()
+                price = calc().calc_limit_price_difference(side, current_price, limit_price_difference)
                 print('force limit order id not available')
-                order_id = self.create_limit_order(price, side, input_quantity, limit_price_difference, stop_loss, reduce_only)
+                pos_size = self.get_position_size()
+                input_quantity = total_pos_size - pos_size
+                print('input_quantity: ' + str(input_quantity))
+                print('pos_size: ' + str(pos_size))
+                print('total_pos_size: ' + str(total_pos_size))
+                order_id = self.create_limit_order(price, side, input_quantity, stop_loss, reduce_only)
                 print('force_limit_order_id: ' + str(order_id))
 
         print('Force Limit Order Successful')
