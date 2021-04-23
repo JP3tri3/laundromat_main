@@ -251,6 +251,7 @@ class Strategy_DCA:
                         print('num_orders_waiting: ' + str(num_orders_waiting))
                         print('x: ' + str(x))
                         order_waiting = orders_waiting[x]
+                        input_quantity = orders_waiting[x]['input_quantity']
 
                         if order_waiting['order_id'] == main_pos_exit_order_id:
                             #check for closed main_pos exit order
@@ -275,12 +276,11 @@ class Strategy_DCA:
                             exit_price = float(orders_waiting[x]['price'])
                             price = str(calc().calc_percent_difference('long', 'exit', exit_price, profit_percent))
                             # self.api.place_order(price, 'Limit', exit_side, secondary_exit_1_input_quantity, 0, False)
-                            order = self.api.create_limit_order(price, exit_side, secondary_exit_1_input_quantity, 0, True)
+                            order = self.api.create_limit_order(price, exit_side, input_quantity, 0, True)
                             if (order == 0):
                                 print('create new exit order failed')
                                 print('attempted price: ' + str(price))
                                 print('last_price: ' + str(self.api.last_price()))
-                                
 
                         elif order_waiting['side'] == exit_side:
                             self.create_trade_record(profit_percent, orders_waiting[x])
@@ -290,7 +290,7 @@ class Strategy_DCA:
                             print('creating new entry order')
                             price = calc().calc_percent_difference('long', 'entry', entry_price, profit_percent)
                             # self.api.place_order(price, 'Limit', entry_side, secondary_entry_1_input_quantity, 0, False)                                   
-                            order = self.api.create_limit_order(price, entry_side, secondary_entry_1_input_quantity, 0, False)
+                            order = self.api.create_limit_order(price, entry_side, input_quantity, 0, False)
                             p_l_index += 1
                             if (order == 0):
                                 print('create new entry order failed')
